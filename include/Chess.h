@@ -93,9 +93,11 @@ class Chess
 
         //Search
         void setTimer(uint64_t time_ms); //ChessSearch.cpp
+        bool hasTimeLeft(); //ChessSearch.cpp
         uint64_t allowedTime; //the amount of time for which the search is allowed to run
         clock_t startTime; //the start of the timer
 
+        bool searchInterrupted;
         int64_t bestMoveSearch(uint8_t depth); //ChessSearch.cpp
         string bestMove; //Stores the result of bestMoveSearch
 

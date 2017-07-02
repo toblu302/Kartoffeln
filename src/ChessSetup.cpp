@@ -147,7 +147,7 @@ void Chess::setup(string fenString) {
         BOARD[EN_PASSANT] = uint64_t(1) << ( enPassantY*8 + enPassantX );
     }
 
-    if( tokens.size() >= 4 ) {
+    if( tokens.size() >= 5 ) {
         fullTimeMove = atoi( tokens[5].c_str() );
     }
 
@@ -157,4 +157,5 @@ void Chess::UCIgetReady() {
     this->depthOnly = false;
     this->bestMove = "0000";
     this->depthLimit = 4;
+    this->searchInterrupted = false;
 }

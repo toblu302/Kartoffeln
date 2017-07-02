@@ -11,6 +11,12 @@ void Chess::setTimer(uint64_t time_ms) {
     this->startTime = clock();
 }
 
+bool Chess::hasTimeLeft() {
+    clock_t currentTime = clock();
+    uint64_t elapsed_time = uint64_t( (double(currentTime - this->startTime) / CLOCKS_PER_SEC)*1000 );
+    return elapsed_time < allowedTime;
+}
+
 string Chess::getBestMove() {
     //make sure there is always some move to return
     vector< string > candidates;
@@ -40,7 +46,23 @@ string Chess::getBestMove() {
         //Set the depth limit depending on how much time we have per move
         setTimer( timeLeft/movesLeft );
 
-        bestMoveSearch(depthLimit); //depthLimit is some default value set in getReady
+        //Iterative deepening
+        depthLimit = 1;
+        string lastMove = "0000";
+        while( hasTimeLeft() ) {
+
+            bestMoveSearch(depthLimit);
+
+            //If the search was interrupted, set the best move the the best move from the last search
+            if( searchInterrupted ) {
+                this->bestMove = lastMove;
+                break;
+            }
+
+            lastMove = bestMove;
+            depthLimit += 1;
+        }
+
     }
 
     if( this->bestMove != "0000" ) {
@@ -53,8 +75,8 @@ string Chess::getBestMove() {
 int64_t Chess::bestMoveSearch(uint8_t depth) {
 
     clock_t currentTime = clock();
-    uint64_t elapsed_time = uint64_t( (double(currentTime - startTime) / CLOCKS_PER_SEC)*1000 );
-    if( elapsed_time > allowedTime ) {
+    if( !hasTimeLeft() ) {
+        this->searchInterrupted = true;
         return 0;
     }
 
