@@ -11,7 +11,46 @@ void Chess::setTimer(uint64_t time_ms) {
     this->startTime = clock();
 }
 
-int64_t Chess::getBestMove(uint8_t depth) {
+string Chess::getBestMove() {
+    //make sure there is always some move to return
+    vector< string > candidates;
+    getAllMoves(candidates);
+    string randomMove = "0000";
+    if( candidates.size() >= 1 ) {
+        randomMove = candidates[0];
+    }
+
+    if( depthOnly ) {
+        setTimer( -1 );
+        bestMoveSearch( depthLimit );
+    }
+    else {
+        uint64_t inc = (turn=='w') ? winc : binc;
+        uint64_t time = (turn=='w') ? wtime : btime;
+
+        //Assume a game is 75 moves
+        //If the game has gone on for more than 75 moves, it will pretend that there is 50 moves left
+        uint64_t movesLeft = 50;
+        if( fullTimeMove < 75 ) {
+            uint64_t movesLeft = (75-fullTimeMove);
+        }
+        uint64_t timeLeft = movesLeft*inc + time;
+        uint64_t timePerMove = timeLeft/movesLeft;
+
+        //Set the depth limit depending on how much time we have per move
+        setTimer( timeLeft/movesLeft );
+
+        bestMoveSearch(depthLimit); //depthLimit is some default value set in getReady
+    }
+
+    if( this->bestMove != "0000" ) {
+        return this->bestMove;
+    }
+
+    return randomMove;
+}
+
+int64_t Chess::bestMoveSearch(uint8_t depth) {
 
     clock_t currentTime = clock();
     uint64_t elapsed_time = uint64_t( (double(currentTime - startTime) / CLOCKS_PER_SEC)*1000 );
@@ -31,7 +70,7 @@ int64_t Chess::getBestMove(uint8_t depth) {
 
     for(uint32_t i=0; i<candidates.size(); ++i) {
             pushMove( candidates[i] );
-            int64_t score = getBestMove(depth-1);
+            int64_t score = bestMoveSearch(depth-1);
             popMove();
             if( turn=='w' && score > bestScore) {
                 bestScore = score;
@@ -43,7 +82,11 @@ int64_t Chess::getBestMove(uint8_t depth) {
             }
     }
 
-    this->bestMove = bestMove;
+    //if we're at the root, bestMove should be set
+    if( depth == depthLimit ) {
+        this->bestMove = bestMove;
+    }
+
     return bestScore;
 }
 

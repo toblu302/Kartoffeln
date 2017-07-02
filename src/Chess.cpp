@@ -199,7 +199,9 @@ void Chess::pushMove(string mv) {
         }
     }
 
-
+    if( turn == 'b' ) {
+        fullTimeMove += 1;
+    }
     turn = ('b' + 'w') - turn;
 }
 
@@ -207,6 +209,9 @@ void Chess::popMove() {
     BOARD = boardStateStack.top();
     boardStateStack.pop();
 
+    if( turn == 'w' ) {
+        fullTimeMove -= 1;
+    }
     turn = ('b' + 'w') - turn;
 }
 

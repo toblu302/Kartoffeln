@@ -23,22 +23,34 @@ class Chess
     public:
         Chess();
 
+        // Setup
         void setup(); //ChessSetup.cpp
         void setup(string fenstring); //ChessSetup.cpp
+        void UCIgetReady(); //ChessSetup.cpp, resets stuff to prepare for UCI
 
+        // Printing
         void printBoard(); //Chess.cpp
         void printBitBoard(uint64_t board); //Chess.cpp
 
+        // Moves
         void pushMove(string move); //Chess.cpp
         void popMove(); //Chess.cpp
         uint64_t Perft(uint8_t depth); //Chess.cpp
         uint64_t PerftDivided(uint8_t depth); //Chess.cpp
 
-        void setTimer(uint64_t time_ms); //ChessSearch.cpp
-        int64_t getBestMove(uint8_t depth); //ChessSearch.cpp
-        string bestMove; //stores the result of getBestMove()
-
+        // Search
+        string getBestMove(); //ChessSearch.cpp
         void getAllMoves(vector< string > & moves); //ChessSearch.cpp
+
+        bool depthOnly; // to handle "go depth x"
+        uint8_t depthLimit;
+
+        uint32_t wtime; //time control variable
+        uint32_t btime; //time control variable
+        uint32_t binc; //time control variable
+        uint32_t winc; //time control variable
+
+        uint32_t fullTimeMove; //current move
 
     private:
         //Board representation
@@ -80,8 +92,12 @@ class Chess
         bool isChecking(); //Chess.cpp
 
         //Search
+        void setTimer(uint64_t time_ms); //ChessSearch.cpp
         uint64_t allowedTime; //the amount of time for which the search is allowed to run
         clock_t startTime; //the start of the timer
+
+        int64_t bestMoveSearch(uint8_t depth); //ChessSearch.cpp
+        string bestMove; //Stores the result of bestMoveSearch
 
         // Evaluation
         int64_t Evaluate(); //ChessEvaluation.cpp

@@ -30,6 +30,13 @@ void Chess::setup(string fenString) {
     BOARD[WHITE_CASTLE_RIGHTS] = 0;
     BOARD[BLACK_CASTLE_RIGHTS] = 0;
 
+    winc = 0;
+    wtime = -1;
+    binc = 0;
+    btime = -1;
+
+    fullTimeMove = 0;
+
 
     istringstream command(fenString);
     string token;
@@ -140,4 +147,14 @@ void Chess::setup(string fenString) {
         BOARD[EN_PASSANT] = uint64_t(1) << ( enPassantY*8 + enPassantX );
     }
 
+    if( tokens.size() >= 4 ) {
+        fullTimeMove = atoi( tokens[5].c_str() );
+    }
+
+}
+
+void Chess::UCIgetReady() {
+    this->depthOnly = false;
+    this->bestMove = "0000";
+    this->depthLimit = 4;
 }

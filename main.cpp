@@ -14,6 +14,8 @@ int main()
 
     //main loop
     while( getline(cin, line) ) {
+        chess.UCIgetReady(); //reset some stuff to prepare for UCI
+
         //split the string into tokens
         istringstream command(line);
         string token;
@@ -23,77 +25,100 @@ int main()
         }
 
         //parse the command
+        string state = "";
         for(vector<string>::size_type i=0; i!=tokens.size(); ++i) {
-            string command = tokens[i];
-            string arg1 = ".";
-            string arg2 = ".";
-            if(i+2 < tokens.size()) {
-                arg1 = tokens[i+1];
-                arg2 = tokens[i+2];
-            }
-            else if(i+1 < tokens.size()) {
-                arg1 = tokens[i+1];
+            string currentToken = tokens[i];
+            string nextToken = "";
+            if( i+1 < tokens.size() ) {
+                nextToken = tokens[i+1];
             }
 
-            if(command == "uci") {
-                cout << "id name Kartoffeln" << endl;
-                cout << "id author Toblu302" << endl;
-                cout << "uciok" << endl;
-                break;
-            }
+            if(state == "") {
+                if(currentToken == "uci") {
+                    cout << "id name Kartoffeln" << endl;
+                    cout << "id author Toblu302" << endl;
+                    cout << "uciok" << endl;
+                    break;
+                }
 
-            else if(command == "isready") {
-                cout << "readyok" << endl;
-                break;
-            }
+                else if(currentToken == "isready") {
+                    cout << "readyok" << endl;
+                    break;
+                }
 
-            else if(command == "ucinewgame") {
-                chess.setup();
-                break;
-            }
+                else if(currentToken == "ucinewgame") {
+                    chess.setup();
+                    break;
+                }
 
-            else if(command == "position") {
-                if(arg1 == "startpos") {
+                else if(currentToken == "position") {
+                    state = "position";
+                }
+
+                else if(currentToken == "go") {
+                    state = "go";
+                }
+
+            }
+            //If we're parsing a "position" command
+            else if(state == "position") {
+                if(currentToken == "startpos") {
                     chess.setup();
                 }
-                else if(arg1 == "fen") {
-                    arg2 = "";
-                    for(vector<string>::size_type j=i+2; j!=tokens.size(); ++j) {
+                else if(currentToken == "fen") {
+                    string arg2 = "";
+                    for(vector<string>::size_type j=i+1; j!=tokens.size(); ++j) {
                         arg2 += tokens[j] + " ";
                     }
                     chess.setup(arg2);
                 }
                 break;
             }
-
-            else if(command == "go") {
-                chess.setTimer(-1);
-
-                if(arg1 == "depth") {
-                    chess.getBestMove( atoi(arg2.c_str()) );
-                    cout << "bestmove " << chess.bestMove << endl;
+            //If we're parsing a "go" command
+            else if(state == "go") {
+                if(currentToken == "winc") {
+                    chess.winc = atoi(nextToken.c_str());
                 }
-                break;
+                else if(currentToken == "binc") {
+                    chess.binc = atoi(nextToken.c_str());
+                }
+                else if(currentToken == "wtime") {
+                    chess.wtime = atoi(nextToken.c_str());
+                }
+                else if(currentToken == "btime") {
+                    chess.btime = atoi(nextToken.c_str());
+                }
+                else if(currentToken == "depth") {
+                    chess.depthOnly = true;
+                    chess.depthLimit = atoi(nextToken.c_str());
+                    break;
+                }
+
             }
 
-            //custom commands
-            else if(command == "print") {
+            //custom commands (independent of the state variable)
+            if(currentToken == "print") {
                 chess.printBoard();
                 break;
             }
 
-            else if(command == "move") {
-                chess.pushMove(arg1);
+            else if(currentToken == "move") {
+                chess.pushMove( nextToken );
                 break;
             }
 
-            else if(command == "perft") {
+            else if(currentToken == "perft") {
                 clock_t firstTime = clock();
-                chess.PerftDivided( atoi(arg1.c_str()) );
+                chess.PerftDivided( atoi(nextToken.c_str()) );
                 clock_t secondTime = clock();
                 cout << "Time: " << (double(secondTime - firstTime) / CLOCKS_PER_SEC)*1000 << " ms" << endl;
                 break;
             }
+        }
+
+        //if we've parsed a go command, we should search for a move
+        if( state == "go" ) {
+            cout << "bestmove " << chess.getBestMove() << endl;
         }
     }
 
