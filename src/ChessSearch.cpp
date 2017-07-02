@@ -6,7 +6,18 @@
 
 using namespace std;
 
+void Chess::setTimer(uint64_t time_ms) {
+    this->allowedTime = time_ms;
+    this->startTime = clock();
+}
+
 int64_t Chess::getBestMove(uint8_t depth) {
+
+    clock_t currentTime = clock();
+    uint64_t elapsed_time = uint64_t( (double(currentTime - startTime) / CLOCKS_PER_SEC)*1000 );
+    if( elapsed_time > allowedTime ) {
+        return 0;
+    }
 
     if( depth == 0 ) {
         return Evaluate();

@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <ctime>
 #include "Chess.h"
 using namespace std;
 
@@ -66,6 +67,8 @@ int main()
             }
 
             else if(command == "go") {
+                chess.setTimer(-1);
+
                 if(arg1 == "depth") {
                     chess.getBestMove( atoi(arg2.c_str()) );
                     cout << "bestmove " << chess.bestMove << endl;
@@ -85,7 +88,10 @@ int main()
             }
 
             else if(command == "perft") {
+                clock_t firstTime = clock();
                 chess.PerftDivided( atoi(arg1.c_str()) );
+                clock_t secondTime = clock();
+                cout << "Time: " << (double(secondTime - firstTime) / CLOCKS_PER_SEC)*1000 << " ms" << endl;
                 break;
             }
         }

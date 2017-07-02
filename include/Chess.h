@@ -5,6 +5,7 @@
 #include <vector>
 #include <stack>
 #include <array>
+#include <ctime>
 #include <stdint.h>
 using namespace std;
 
@@ -33,6 +34,7 @@ class Chess
         uint64_t Perft(uint8_t depth); //Chess.cpp
         uint64_t PerftDivided(uint8_t depth); //Chess.cpp
 
+        void setTimer(uint64_t time_ms); //ChessSearch.cpp
         int64_t getBestMove(uint8_t depth); //ChessSearch.cpp
         string bestMove; //stores the result of getBestMove()
 
@@ -76,6 +78,10 @@ class Chess
         string bitPositionToStringPosition(uint8_t bit); //Chess.cpp
         uint64_t stringToBitPosition(string position); //Chess.cpp
         bool isChecking(); //Chess.cpp
+
+        //Search
+        uint64_t allowedTime; //the amount of time for which the search is allowed to run
+        clock_t startTime; //the start of the timer
 
         // Evaluation
         int64_t Evaluate(); //ChessEvaluation.cpp
