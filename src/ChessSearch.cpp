@@ -19,6 +19,7 @@ bool Chess::hasTimeLeft() {
 
 string Chess::getBestMove() {
     //make sure there is always some move to return
+
     vector< string > candidates;
     getAllMoves(candidates);
     string randomMove = "0000";
@@ -28,7 +29,7 @@ string Chess::getBestMove() {
 
     if( depthOnly ) {
         setTimer( -1 );
-        bestMoveSearch( depthLimit );
+        alphaBetaSearch(-100000, 100000, depthLimit);
     }
     else {
         uint64_t inc = (turn=='w') ? winc : binc;
@@ -51,7 +52,7 @@ string Chess::getBestMove() {
         string lastMove = "0000";
         while( hasTimeLeft() ) {
 
-            bestMoveSearch(depthLimit);
+            alphaBetaSearch(-100000, 100000, depthLimit);
 
             //If the search was interrupted, set the best move the the best move from the last search
             if( searchInterrupted ) {
@@ -72,9 +73,9 @@ string Chess::getBestMove() {
     return randomMove;
 }
 
-int64_t Chess::bestMoveSearch(uint8_t depth) {
 
-    clock_t currentTime = clock();
+int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
+
     if( !hasTimeLeft() ) {
         this->searchInterrupted = true;
         return 0;
@@ -87,20 +88,35 @@ int64_t Chess::bestMoveSearch(uint8_t depth) {
     vector< string > candidates;
     getAllMoves(candidates);
 
-    int64_t bestScore = (turn == 'w') ? -100000 : 100000;
+    int64_t bestScore = (turn == 'w') ? alpha : beta;
     string bestMove = "0000";
 
     for(uint32_t i=0; i<candidates.size(); ++i) {
-            pushMove( candidates[i] );
-            int64_t score = bestMoveSearch(depth-1);
-            popMove();
-            if( turn=='w' && score > bestScore) {
-                bestScore = score;
-                bestMove = candidates[i];
+            if( turn=='w' ) {
+                pushMove( candidates[i] );
+                int64_t score = alphaBetaSearch(bestScore, beta, depth-1);
+                popMove();
+
+                if( score > bestScore ) {
+                    bestScore = score;
+                    bestMove = candidates[i];
+                    if ( score > beta ) {
+                        return beta;
+                    }
+                }
             }
-            else if( turn=='b' && score < bestScore) {
-                bestScore = score;
-                bestMove = candidates[i];
+            else if( turn=='b' ) {
+                pushMove( candidates[i] );
+                int64_t score = alphaBetaSearch(alpha, bestScore, depth-1);
+                popMove();
+
+                if( score < bestScore ) {
+                    bestScore = score;
+                    bestMove = candidates[i];
+                    if ( score < alpha ) {
+                        return alpha;
+                    }
+                }
             }
     }
 
@@ -111,6 +127,7 @@ int64_t Chess::bestMoveSearch(uint8_t depth) {
 
     return bestScore;
 }
+
 
 void Chess::getAllMoves(vector<string> &moves) {
 

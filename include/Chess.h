@@ -18,6 +18,7 @@ enum BITBOARDS {
     WHITE_CASTLE_RIGHTS=15, BLACK_CASTLE_RIGHTS=16
 };
 
+
 class Chess
 {
     public:
@@ -100,7 +101,7 @@ class Chess
         clock_t startTime; //the start of the timer
 
         bool searchInterrupted;
-        int64_t bestMoveSearch(uint8_t depth); //ChessSearch.cpp
+        int64_t alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth); //ChessSearch.cpp
         string bestMove; //Stores the result of bestMoveSearch
 
         // Evaluation
