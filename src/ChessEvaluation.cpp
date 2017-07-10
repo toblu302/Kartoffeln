@@ -11,34 +11,34 @@ int64_t Chess::materialEvaluation() {
     for(int x=0; x<64; ++x) {
         uint64_t shifted = uint64_t(1) << x;
 
-        if( BOARD[WHITE_PAWN] & shifted ) {
+        if( BOARD[PAWN] & shifted & BOARD[WHITE] ) {
             score += 10;
         }
-        else if( BOARD[ WHITE_KNIGHT ] & shifted ) {
+        else if( BOARD[ KNIGHT ] & shifted & BOARD[WHITE] ) {
             score += 30;
         }
-        else if( BOARD[ WHITE_ROOK ] & shifted ) {
+        else if( BOARD[ ROOK ] & shifted & BOARD[WHITE] ) {
             score += 50;
         }
-        else if( BOARD[ WHITE_BISHOP ] & shifted ) {
+        else if( BOARD[ BISHOP ] & shifted & BOARD[WHITE] ) {
             score += 30;
         }
-        else if( BOARD[ WHITE_QUEEN ] & shifted ) {
+        else if( BOARD[ QUEEN ] & shifted & BOARD[WHITE] ) {
             score += 90;
         }
-        else if( BOARD[BLACK_PAWN] & shifted ) {
+        else if( BOARD[PAWN] & shifted & BOARD[BLACK] ) {
             score -= 10;
         }
-        else if( BOARD[ BLACK_KNIGHT ] & shifted ) {
+        else if( BOARD[ KNIGHT ] & shifted & BOARD[BLACK] ) {
             score -= 30;
         }
-        else if( BOARD[ BLACK_ROOK ] & shifted ) {
+        else if( BOARD[ ROOK ] & shifted & BOARD[BLACK] ) {
             score -= 50;
         }
-        else if( BOARD[ BLACK_BISHOP ] & shifted ) {
+        else if( BOARD[ BISHOP ] & shifted & BOARD[BLACK] ) {
             score -= 30;
         }
-        else if( BOARD[ BLACK_QUEEN ] & shifted ) {
+        else if( BOARD[ QUEEN ] & shifted & BOARD[BLACK] ) {
             score -= 90;
         }
     }
@@ -59,10 +59,10 @@ int64_t Chess::positionEvaluation() {
         if( (*it) & blackAttacking ) {
             score -= 1;
         }
-        if( (*it) & BOARD[ALL_WHITE] ) {
+        if( (*it) & BOARD[WHITE] ) {
             score += 1;
         }
-        if( (*it) & BOARD[ALL_BLACK] ) {
+        if( (*it) & BOARD[BLACK] ) {
             score -= 1;
         }
     }

@@ -103,7 +103,8 @@ int main()
             }
 
             else if(currentToken == "move") {
-                chess.pushMove( nextToken );
+                //Move mv = stringToMove( mv );
+                //chess.makeMove( nextToken );
                 break;
             }
 
@@ -114,11 +115,16 @@ int main()
                 cout << "Time: " << (double(secondTime - firstTime) / CLOCKS_PER_SEC)*1000 << " ms" << endl;
                 break;
             }
+
+            else if(currentToken == "perftpl") {
+                cout << chess.Perft( atoi(nextToken.c_str()) ) << endl;
+                break;
+            }
         }
 
         //if we've parsed a go command, we should search for a move
         if( state == "go" ) {
-            cout << "bestmove " << chess.getBestMove() << endl;
+            cout << "bestmove " << chess.moveToString( chess.getBestMove() ) << endl;
         }
     }
 

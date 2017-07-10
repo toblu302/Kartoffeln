@@ -17,19 +17,12 @@ bool Chess::hasTimeLeft() {
     return elapsed_time < allowedTime;
 }
 
-string Chess::getBestMove() {
-    //make sure there is always some move to return
-
-    vector< string > candidates;
-    getAllMoves(candidates);
-    string randomMove = "0000";
-    if( candidates.size() >= 1 ) {
-        randomMove = candidates[0];
-    }
-
+Move Chess::getBestMove() {
+    //if we're only doing depth, do a simple alpha-beta search
     if( depthOnly ) {
         setTimer( -1 );
-        alphaBetaSearch(-100000, 100000, depthLimit);
+        alphaBetaSearch(-10000000, 10000000, depthLimit);
+        return this->bestMove;
     }
     else {
         uint64_t inc = (turn=='w') ? winc : binc;
@@ -49,10 +42,10 @@ string Chess::getBestMove() {
 
         //Iterative deepening
         depthLimit = 1;
-        string lastMove = "0000";
+        Move lastMove;
         while( hasTimeLeft() ) {
 
-            alphaBetaSearch(-100000, 100000, depthLimit);
+            alphaBetaSearch(-10000000, 10000000, depthLimit);
 
             //If the search was interrupted, set the best move the the best move from the last search
             if( searchInterrupted ) {
@@ -66,11 +59,7 @@ string Chess::getBestMove() {
 
     }
 
-    if( this->bestMove != "0000" ) {
-        return this->bestMove;
-    }
-
-    return randomMove;
+    return this->bestMove;
 }
 
 
@@ -85,39 +74,42 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
         return Evaluate();
     }
 
-    vector< string > candidates;
+    vector< Move > candidates;
     getAllMoves(candidates);
 
     int64_t bestScore = (turn == 'w') ? alpha : beta;
-    string bestMove = "0000";
+    Move bestMove;
 
     for(uint32_t i=0; i<candidates.size(); ++i) {
-            if( turn=='w' ) {
-                pushMove( candidates[i] );
-                int64_t score = alphaBetaSearch(bestScore, beta, depth-1);
-                popMove();
 
-                if( score > bestScore ) {
-                    bestScore = score;
-                    bestMove = candidates[i];
-                    if ( score > beta ) {
-                        return beta;
-                    }
+        if( turn=='w' ) {
+            makeMove( candidates[i] );
+            int64_t score = alphaBetaSearch(bestScore, beta, depth-1);
+            popMove();
+
+            if( score > bestScore ) {
+                bestScore = score;
+                bestMove = candidates[i];
+                if ( score > beta ) {
+                    return beta;
                 }
             }
-            else if( turn=='b' ) {
-                pushMove( candidates[i] );
-                int64_t score = alphaBetaSearch(alpha, bestScore, depth-1);
-                popMove();
+        }
 
-                if( score < bestScore ) {
-                    bestScore = score;
-                    bestMove = candidates[i];
-                    if ( score < alpha ) {
-                        return alpha;
-                    }
+        else if( turn=='b' ) {
+            makeMove( candidates[i] );
+            int64_t score = alphaBetaSearch(alpha, bestScore, depth-1);
+            popMove();
+
+            if( score < bestScore ) {
+                bestScore = score;
+                bestMove = candidates[i];
+                if ( score < alpha ) {
+                    return alpha;
                 }
             }
+        }
+
     }
 
     //if we're at the root, bestMove should be set
@@ -129,15 +121,18 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
 }
 
 
-void Chess::getAllMoves(vector<string> &moves) {
+void Chess::getAllMoves(vector<Move> &moves) {
 
     uint64_t blockers = 0;
     if( this->turn == 'w' ) {
-        blockers = BOARD[ALL_WHITE];
+        blockers = BOARD[WHITE];
     }
     else {
-        blockers = BOARD[ALL_BLACK];
+        blockers = BOARD[BLACK];
     }
+
+    Move mv;
+    mv.color = (turn == 'w') ? WHITE : BLACK;
 
     //iterate over all positions on the board
     for(int x=0; x<64; ++x) {
@@ -145,60 +140,55 @@ void Chess::getAllMoves(vector<string> &moves) {
         string start = bitPositionToStringPosition(x);
         uint64_t bitMoves = 0;
 
-        if( turn == 'w' ) {
-            if( BOARD[WHITE_PAWN] & shifted ) {
-                bitMoves = getWhitePawnMoves( shifted );
-            }
-            else if( BOARD[WHITE_KING] & shifted ) {
-                bitMoves = getKingMoves( x, blockers );
-                bitMoves |= getKingCastles(x);
-            }
-            else if( BOARD[ WHITE_KNIGHT ] & shifted ) {
-                bitMoves = getKnightMoves( x, blockers );
-            }
-            else if( BOARD[ WHITE_ROOK ] & shifted ) {
-                bitMoves = getSlindingAlongRank( x, blockers );
-                bitMoves |= getSlindingAlongFile( x, blockers );
-            }
-            else if( BOARD[ WHITE_BISHOP ] & shifted ) {
-                bitMoves = getSlindingAlongDiagonalA1H8( x, blockers );
-                bitMoves |= getSlindingAlongDiagonalA8H1( x, blockers );
-            }
-            else if( BOARD[ WHITE_QUEEN ] & shifted ) {
-                bitMoves = getSlindingAlongDiagonalA1H8( x, blockers );
-                bitMoves |= getSlindingAlongDiagonalA8H1( x, blockers );
-                bitMoves |= getSlindingAlongRank( x, blockers );
-                bitMoves |= getSlindingAlongFile( x, blockers );
-            }
+        if( turn == 'w' && (BOARD[PAWN] & shifted & BOARD[WHITE]) ) {
+            bitMoves = getWhitePawnMoves( shifted );
+
+            mv.from_bitboard = PAWN;
+            mv.from_bitmove = shifted;
+        }
+        else if( turn == 'b' && (BOARD[PAWN] & shifted & BOARD[BLACK]) ) {
+            bitMoves = getBlackPawnMoves( shifted );
+
+            mv.from_bitboard = PAWN;
+            mv.from_bitmove = shifted;
         }
 
-        if( turn == 'b' ) {
-            if( BOARD[BLACK_PAWN] & shifted ) {
-                bitMoves = getBlackPawnMoves( shifted );
-            }
-            else if( BOARD[BLACK_KING] & shifted ) {
-                bitMoves = getKingMoves( x, blockers );
-                bitMoves |= getKingCastles(x);
-            }
-            else if( BOARD[ BLACK_KNIGHT ] & shifted ) {
-                bitMoves = getKnightMoves( x, blockers );
-            }
-            else if( BOARD[ BLACK_ROOK ] & shifted ) {
-                bitMoves = getSlindingAlongRank( x, blockers );
-                bitMoves |= getSlindingAlongFile( x, blockers );
-            }
-            else if( BOARD[ BLACK_BISHOP ] & shifted ) {
-                bitMoves = getSlindingAlongDiagonalA1H8( x, blockers );
-                bitMoves |= getSlindingAlongDiagonalA8H1( x, blockers );
-            }
-            else if( BOARD[ BLACK_QUEEN ] & shifted ) {
-                bitMoves = getSlindingAlongDiagonalA1H8( x, blockers );
-                bitMoves |= getSlindingAlongDiagonalA8H1( x, blockers );
-                bitMoves |= getSlindingAlongRank( x, blockers );
-                bitMoves |= getSlindingAlongFile( x, blockers );
-            }
-        }
+        if( BOARD[KING] & shifted & BOARD[mv.color] ) {
+            bitMoves = getKingMoves( x, blockers );
+            bitMoves |= getKingCastles(x);
 
+            mv.from_bitboard = KING;
+            mv.from_bitmove = shifted;
+        }
+        else if( BOARD[ KNIGHT ] & shifted & BOARD[mv.color] ) {
+            bitMoves = getKnightMoves( x, blockers );
+
+            mv.from_bitboard = KNIGHT;
+            mv.from_bitmove = shifted;
+        }
+        else if( BOARD[ ROOK ] & shifted & BOARD[mv.color] ) {
+            bitMoves = getSlindingAlongRank( x, blockers );
+            bitMoves |= getSlindingAlongFile( x, blockers );
+
+            mv.from_bitboard = ROOK;
+            mv.from_bitmove = shifted;
+        }
+        else if( BOARD[ BISHOP ] & shifted & BOARD[mv.color] ) {
+            bitMoves = getSlindingAlongDiagonalA1H8( x, blockers );
+            bitMoves |= getSlindingAlongDiagonalA8H1( x, blockers );
+
+            mv.from_bitboard = BISHOP;
+            mv.from_bitmove = shifted;
+        }
+        else if( BOARD[ QUEEN ] & shifted & BOARD[mv.color] ) {
+            bitMoves = getSlindingAlongDiagonalA1H8( x, blockers );
+            bitMoves |= getSlindingAlongDiagonalA8H1( x, blockers );
+            bitMoves |= getSlindingAlongRank( x, blockers );
+            bitMoves |= getSlindingAlongFile( x, blockers );
+
+            mv.from_bitboard = QUEEN;
+            mv.from_bitmove = shifted;
+        }
 
 
         //if the position has some moves, find where they're leading
@@ -207,25 +197,72 @@ void Chess::getAllMoves(vector<string> &moves) {
                 uint64_t shifted = uint64_t(1) << stopPos;
                 if( bitMoves & shifted ) {
 
-                    string mv = start + bitPositionToStringPosition(stopPos);
+                    mv.to_bitmove = shifted;
+                    mv.move_type = QUIET;
 
-                    pushMove( mv );
+                    //handle captures
+                    if ( (turn == 'b' && (mv.to_bitmove & BOARD[WHITE])) ||
+                         (turn == 'w' && (mv.to_bitmove & BOARD[BLACK])) ) {
 
-                    if( !isChecking() ) {
-                        //check if we're promoting
-                        if( (BOARD[BLACK_PAWN] & shifted & 0xFF) ||
-                            (BOARD[WHITE_PAWN] & shifted & (uint64_t(0xFF) << 56)) ) {
-                            moves.push_back(mv + 'q');
-                            moves.push_back(mv + 'b');
-                            moves.push_back(mv + 'n');
-                            moves.push_back(mv + 'r');
+                        mv.move_type = CAPTURE;
+
+                        for( int board=0; board<BITBOARD_PIECES; ++board ) {
+                            if( BOARD[ board ] & mv.to_bitmove ) {
+                                mv.captured_bitboard = BITBOARDS(board);
+                            }
                         }
-                        else {
-                            moves.push_back( mv );
-                        }
-
                     }
-                    popMove();
+
+                    //handle promotions
+                    if( mv.from_bitboard == PAWN && ((mv.to_bitmove & 0xFF) | (mv.to_bitmove & (uint64_t(0xFF) << 56))) ) {
+                        if( mv.move_type == CAPTURE ) {
+                            mv.move_type = PROMOTION_QUEEN_CAPTURE;
+                            if( isValid(mv) ) moves.push_back(mv);
+                            mv.move_type = PROMOTION_BISHOP_CAPTURE;
+                            if( isValid(mv) ) moves.push_back(mv);
+                            mv.move_type = PROMOTION_KNIGHT_CAPTURE;
+                            if( isValid(mv) ) moves.push_back(mv);
+                            mv.move_type = PROMOTION_ROOK_CAPTURE;
+                            if( isValid(mv) ) moves.push_back(mv);
+                            continue;
+                        }
+                        mv.move_type = PROMOTION_QUEEN;
+                        if( isValid(mv) ) moves.push_back(mv);
+                        mv.move_type = PROMOTION_BISHOP;
+                        if( isValid(mv) ) moves.push_back(mv);
+                        mv.move_type = PROMOTION_KNIGHT;
+                        if( isValid(mv) ) moves.push_back(mv);
+                        mv.move_type = PROMOTION_ROOK;
+                        if( isValid(mv) ) moves.push_back(mv);
+                        continue;
+                    }
+
+                    //handle double pushes
+                    else if ( (mv.from_bitboard == PAWN) &&
+                               ( ((mv.to_bitmove >> 16) == mv.from_bitmove) ||
+                                 ((mv.to_bitmove << 16) == mv.from_bitmove)) ) {
+                        mv.move_type = DOUBLE_PAWN;
+                    }
+
+                    //handle en passant captures
+                    else if( (mv.to_bitmove & BOARD[EN_PASSANT_SQUARE]) && (mv.from_bitboard == PAWN) ) {
+                        mv.move_type = EN_PASSANT_CAPTURE;
+                    }
+
+                    //handle castling
+                    else if (mv.from_bitboard == KING) {
+                        if( (mv.to_bitmove >> 2) == mv.from_bitmove ) {
+                            mv.move_type = CASTLING_KINGSIDE;
+                        }
+                        else if( (mv.to_bitmove << 2) == mv.from_bitmove ) {
+                            mv.move_type = CASTLING_QUEENSIDE;
+                        }
+                    }
+
+
+                    if( isValid(mv) ) {
+                        moves.push_back(mv);
+                    }
                 }
             }
         }

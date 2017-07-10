@@ -9,15 +9,36 @@
 #include <stdint.h>
 using namespace std;
 
-#define BITBOARD_COUNT 17
+#define BITBOARD_COUNT 10
+#define BITBOARD_PIECES 6
 enum BITBOARDS {
-    WHITE_PAWN=0, WHITE_ROOK=1, WHITE_KNIGHT=2, WHITE_BISHOP=3, WHITE_QUEEN=4, WHITE_KING=5,
-    BLACK_PAWN=6, BLACK_ROOK=7, BLACK_KNIGHT=8, BLACK_BISHOP=9, BLACK_QUEEN=10, BLACK_KING=11,
-    ALL_WHITE=12, ALL_BLACK=13,
-    EN_PASSANT=14,
-    WHITE_CASTLE_RIGHTS=15, BLACK_CASTLE_RIGHTS=16
+    PAWN=0, ROOK=1, KNIGHT=2, BISHOP=3, QUEEN=4, KING=5,
+    WHITE=6, BLACK=7,
+    EN_PASSANT_SQUARE=8,
+    CASTLE_RIGHTS=9
 };
 
+enum MOVETYPE {
+    QUIET, CAPTURE, EN_PASSANT_CAPTURE,
+    PROMOTION_QUEEN, PROMOTION_KNIGHT, PROMOTION_ROOK, PROMOTION_BISHOP,
+    PROMOTION_QUEEN_CAPTURE, PROMOTION_KNIGHT_CAPTURE, PROMOTION_ROOK_CAPTURE, PROMOTION_BISHOP_CAPTURE,
+    CASTLING_KINGSIDE, CASTLING_QUEENSIDE,
+    DOUBLE_PAWN
+};
+
+struct Move {
+    MOVETYPE move_type;
+
+    //regular moves
+    uint64_t from_bitmove;
+    uint64_t to_bitmove;
+    BITBOARDS from_bitboard;
+
+    //captures
+    BITBOARDS captured_bitboard;
+
+    BITBOARDS color;
+};
 
 class Chess
 {
@@ -34,14 +55,16 @@ class Chess
         void printBitBoard(uint64_t board); //Chess.cpp
 
         // Moves
-        void pushMove(string move); //Chess.cpp
+        void makeMove(Move mv); //Chess.cpp
         void popMove(); //Chess.cpp
         uint64_t Perft(uint8_t depth); //Chess.cpp
-        uint64_t PerftDivided(uint8_t depth); //Chess.cpp
+        void PerftDivided(uint8_t depth); //Chess.cpp
+
 
         // Search
-        string getBestMove(); //ChessSearch.cpp
-        void getAllMoves(vector< string > & moves); //ChessSearch.cpp
+        string moveToString(Move mv); //Chess.cpp
+        Move getBestMove(); //ChessSearch.cpp
+        void getAllMoves(vector<Move> &moves); //ChessSearch.cpp
 
         bool depthOnly; // to handle "go depth x"
         uint8_t depthLimit;
@@ -56,6 +79,7 @@ class Chess
     private:
         //Board representation
         char turn;
+
         array<uint64_t, BITBOARD_COUNT> BOARD;
         stack< array<uint64_t, BITBOARD_COUNT> > boardStateStack;
 
@@ -93,6 +117,7 @@ class Chess
         string bitPositionToStringPosition(uint8_t bit); //Chess.cpp
         uint64_t stringToBitPosition(string position); //Chess.cpp
         bool isChecking(); //Chess.cpp
+        bool isValid(Move mv); //Chess.cpp
 
         //Search
         void setTimer(uint64_t time_ms); //ChessSearch.cpp
@@ -102,7 +127,7 @@ class Chess
 
         bool searchInterrupted;
         int64_t alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth); //ChessSearch.cpp
-        string bestMove; //Stores the result of bestMoveSearch
+        Move bestMove; //Stores the result of bestMoveSearch
 
         // Evaluation
         int64_t Evaluate(); //ChessEvaluation.cpp
