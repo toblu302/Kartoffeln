@@ -137,7 +137,6 @@ void Chess::getAllMoves(vector<Move> &moves) {
     //iterate over all positions on the board
     for(int x=0; x<64; ++x) {
         uint64_t shifted = uint64_t(1) << x;
-        string start = bitPositionToStringPosition(x);
         uint64_t bitMoves = 0;
 
         if( turn == 'w' && (BOARD[PAWN] & shifted & BOARD[WHITE]) ) {
@@ -192,78 +191,76 @@ void Chess::getAllMoves(vector<Move> &moves) {
 
 
         //if the position has some moves, find where they're leading
-        if( bitMoves != 0 ) {
-            for(int stopPos=0; stopPos<64; ++stopPos) {
-                uint64_t shifted = uint64_t(1) << stopPos;
-                if( bitMoves & shifted ) {
+        while( bitMoves != 0 ) {
+            int stopPos = __builtin_ffsll( bitMoves )-1;
 
-                    mv.to_bitmove = shifted;
-                    mv.move_type = QUIET;
+            uint64_t shifted = uint64_t(1) << stopPos;
+            bitMoves &= ~(shifted);
 
-                    //handle captures
-                    if ( (turn == 'b' && (mv.to_bitmove & BOARD[WHITE])) ||
-                         (turn == 'w' && (mv.to_bitmove & BOARD[BLACK])) ) {
+            mv.to_bitmove = shifted;
+            mv.move_type = QUIET;
 
-                        mv.move_type = CAPTURE;
+            //handle captures
+            if ( (turn == 'b' && (mv.to_bitmove & BOARD[WHITE])) ||
+                 (turn == 'w' && (mv.to_bitmove & BOARD[BLACK])) ) {
 
-                        for( int board=0; board<BITBOARD_PIECES; ++board ) {
-                            if( BOARD[ board ] & mv.to_bitmove ) {
-                                mv.captured_bitboard = BITBOARDS(board);
-                            }
-                        }
-                    }
+                mv.move_type = CAPTURE;
 
-                    //handle promotions
-                    if( mv.from_bitboard == PAWN && ((mv.to_bitmove & 0xFF) | (mv.to_bitmove & (uint64_t(0xFF) << 56))) ) {
-                        if( mv.move_type == CAPTURE ) {
-                            mv.move_type = PROMOTION_QUEEN_CAPTURE;
-                            if( isValid(mv) ) moves.push_back(mv);
-                            mv.move_type = PROMOTION_BISHOP_CAPTURE;
-                            if( isValid(mv) ) moves.push_back(mv);
-                            mv.move_type = PROMOTION_KNIGHT_CAPTURE;
-                            if( isValid(mv) ) moves.push_back(mv);
-                            mv.move_type = PROMOTION_ROOK_CAPTURE;
-                            if( isValid(mv) ) moves.push_back(mv);
-                            continue;
-                        }
-                        mv.move_type = PROMOTION_QUEEN;
-                        if( isValid(mv) ) moves.push_back(mv);
-                        mv.move_type = PROMOTION_BISHOP;
-                        if( isValid(mv) ) moves.push_back(mv);
-                        mv.move_type = PROMOTION_KNIGHT;
-                        if( isValid(mv) ) moves.push_back(mv);
-                        mv.move_type = PROMOTION_ROOK;
-                        if( isValid(mv) ) moves.push_back(mv);
-                        continue;
-                    }
-
-                    //handle double pushes
-                    else if ( (mv.from_bitboard == PAWN) &&
-                               ( ((mv.to_bitmove >> 16) == mv.from_bitmove) ||
-                                 ((mv.to_bitmove << 16) == mv.from_bitmove)) ) {
-                        mv.move_type = DOUBLE_PAWN;
-                    }
-
-                    //handle en passant captures
-                    else if( (mv.to_bitmove & BOARD[EN_PASSANT_SQUARE]) && (mv.from_bitboard == PAWN) ) {
-                        mv.move_type = EN_PASSANT_CAPTURE;
-                    }
-
-                    //handle castling
-                    else if (mv.from_bitboard == KING) {
-                        if( (mv.to_bitmove >> 2) == mv.from_bitmove ) {
-                            mv.move_type = CASTLING_KINGSIDE;
-                        }
-                        else if( (mv.to_bitmove << 2) == mv.from_bitmove ) {
-                            mv.move_type = CASTLING_QUEENSIDE;
-                        }
-                    }
-
-
-                    if( isValid(mv) ) {
-                        moves.push_back(mv);
+                for( int board=0; board<BITBOARD_PIECES; ++board ) {
+                    if( BOARD[ board ] & mv.to_bitmove ) {
+                        mv.captured_bitboard = BITBOARDS(board);
                     }
                 }
+            }
+
+            //handle promotions
+            if( mv.from_bitboard == PAWN && ((mv.to_bitmove & 0xFF) | (mv.to_bitmove & (uint64_t(0xFF) << 56))) ) {
+                if( mv.move_type == CAPTURE ) {
+                    mv.move_type = PROMOTION_QUEEN_CAPTURE;
+                    if( isValid(mv) ) moves.push_back(mv);
+                    mv.move_type = PROMOTION_BISHOP_CAPTURE;
+                    if( isValid(mv) ) moves.push_back(mv);
+                    mv.move_type = PROMOTION_KNIGHT_CAPTURE;
+                    if( isValid(mv) ) moves.push_back(mv);
+                    mv.move_type = PROMOTION_ROOK_CAPTURE;
+                    if( isValid(mv) ) moves.push_back(mv);
+                    continue;
+                }
+                mv.move_type = PROMOTION_QUEEN;
+                if( isValid(mv) ) moves.push_back(mv);
+                mv.move_type = PROMOTION_BISHOP;
+                if( isValid(mv) ) moves.push_back(mv);
+                mv.move_type = PROMOTION_KNIGHT;
+                if( isValid(mv) ) moves.push_back(mv);
+                mv.move_type = PROMOTION_ROOK;
+                if( isValid(mv) ) moves.push_back(mv);
+                continue;
+            }
+
+            //handle double pushes
+            else if ( (mv.from_bitboard == PAWN) &&
+                       ( ((mv.to_bitmove >> 16) == mv.from_bitmove) ||
+                         ((mv.to_bitmove << 16) == mv.from_bitmove)) ) {
+                mv.move_type = DOUBLE_PAWN;
+            }
+
+            //handle en passant captures
+            else if( (mv.to_bitmove & BOARD[EN_PASSANT_SQUARE]) && (mv.from_bitboard == PAWN) ) {
+                mv.move_type = EN_PASSANT_CAPTURE;
+            }
+
+            //handle castling
+            else if (mv.from_bitboard == KING) {
+                if( (mv.to_bitmove >> 2) == mv.from_bitmove ) {
+                    mv.move_type = CASTLING_KINGSIDE;
+                }
+                else if( (mv.to_bitmove << 2) == mv.from_bitmove ) {
+                    mv.move_type = CASTLING_QUEENSIDE;
+                }
+            }
+
+            if( isValid(mv) ) {
+                moves.push_back(mv);
             }
         }
 
