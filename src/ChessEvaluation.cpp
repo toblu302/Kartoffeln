@@ -8,40 +8,17 @@ int64_t Chess::materialEvaluation() {
 
     int64_t score = 0;
 
-    for(int x=0; x<64; ++x) {
-        uint64_t shifted = uint64_t(1) << x;
+    score += 10*( __builtin_popcountll( BOARD[PAWN] & BOARD[WHITE] ) );
+    score += 30*( __builtin_popcountll( BOARD[KNIGHT] & BOARD[WHITE] ) );
+    score += 30*( __builtin_popcountll( BOARD[BISHOP] & BOARD[WHITE] ) );
+    score += 50*( __builtin_popcountll( BOARD[ROOK] & BOARD[WHITE] ) );
+    score += 90*( __builtin_popcountll( BOARD[QUEEN] & BOARD[WHITE] ) );
 
-        if( BOARD[PAWN] & shifted & BOARD[WHITE] ) {
-            score += 10;
-        }
-        else if( BOARD[ KNIGHT ] & shifted & BOARD[WHITE] ) {
-            score += 30;
-        }
-        else if( BOARD[ ROOK ] & shifted & BOARD[WHITE] ) {
-            score += 50;
-        }
-        else if( BOARD[ BISHOP ] & shifted & BOARD[WHITE] ) {
-            score += 30;
-        }
-        else if( BOARD[ QUEEN ] & shifted & BOARD[WHITE] ) {
-            score += 90;
-        }
-        else if( BOARD[PAWN] & shifted & BOARD[BLACK] ) {
-            score -= 10;
-        }
-        else if( BOARD[ KNIGHT ] & shifted & BOARD[BLACK] ) {
-            score -= 30;
-        }
-        else if( BOARD[ ROOK ] & shifted & BOARD[BLACK] ) {
-            score -= 50;
-        }
-        else if( BOARD[ BISHOP ] & shifted & BOARD[BLACK] ) {
-            score -= 30;
-        }
-        else if( BOARD[ QUEEN ] & shifted & BOARD[BLACK] ) {
-            score -= 90;
-        }
-    }
+    score -= 10*( __builtin_popcountll( BOARD[PAWN] & BOARD[BLACK] ) );
+    score -= 30*( __builtin_popcountll( BOARD[KNIGHT] & BOARD[BLACK] ) );
+    score -= 30*( __builtin_popcountll( BOARD[BISHOP] & BOARD[BLACK] ) );
+    score -= 50*( __builtin_popcountll( BOARD[ROOK] & BOARD[BLACK] ) );
+    score -= 90*( __builtin_popcountll( BOARD[QUEEN] & BOARD[BLACK] ) );
 
     return score;
 }
