@@ -76,6 +76,9 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
 
     vector< Move > candidates;
     getAllMoves(candidates);
+    if( candidates.size() == 0 ) {
+        return (turn == 'w') ? -1000000 : 1000000;
+    }
 
     int64_t bestScore = (turn == 'w') ? alpha : beta;
     Move bestMove;
