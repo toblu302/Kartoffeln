@@ -106,8 +106,6 @@ class Chess
         const uint64_t FILE_A = (uint64_t(1) | uint64_t(1) << 8 | uint64_t(1) << 16 | uint64_t(1) << 24 | uint64_t(1) << 32 | uint64_t(1) << 40 | uint64_t(1) << 48 | uint64_t(1) << 56);
         const uint64_t FILE_H = (uint64_t(7) | uint64_t(1) << 15 | uint64_t(1) << 23 | uint64_t(1) << 31 | uint64_t(1) << 39 | uint64_t(1) << 47 | uint64_t(1) << 55 | uint64_t(1) << 63);
 
-        array<uint64_t, 4> CENTER_SQARES { { (uint64_t(1) << 27), (uint64_t(1) << 28), (uint64_t(1) << 35), (uint64_t(1) << 36) } };
-
         uint64_t KNIGHT_MOVES[64];
         uint64_t KING_MOVES[64];
         uint64_t OCCUPANCY[8][256];
@@ -133,6 +131,36 @@ class Chess
         int64_t Evaluate(); //ChessEvaluation.cpp
         int64_t materialEvaluation(); //ChessEvaluation.cpp
         int64_t positionEvaluation(); //ChessEvaluation.cpp
+
+
+        //Piece-Square Tables
+        int64_t PAWN_PSQT[64] = {  0, 0, 0, 0, 0, 0, 0, 0,
+                                   3, 3,-5,-5,-5,-5, 3, 3,
+                                   0, 0, 0, 0, 0, 0, 0, 0,
+                                   1, 1, 1, 8, 8, 1, 1, 1,
+                                   5, 0, 0, 8, 8, 0, 0, 5,
+                                   3, 3, 3, 5, 5, 3, 3, 3,
+                                   9, 9, 9, 9, 9, 9, 9, 9,
+                                   0, 0, 0, 0, 0, 0, 0, 0 };
+
+
+        int64_t BISHOP_PSQT[64] = { -6,-5,-5,-5,-5,-5,-5,-6,
+                                    -5, 0, 0, 0, 0, 0, 0,-5,
+                                    -5, 6, 6, 6, 6, 6, 6,-5,
+                                    -5, 0, 6, 6, 6, 6, 0,-5,
+                                    -5, 0, 6, 6, 6, 6, 0,-5,
+                                    -5, 0, 4, 4, 4, 4, 0,-5,
+                                    -5, 0, 0, 0, 0, 0, 0,-5,
+                                    -6,-5,-5,-5,-5,-5,-5,-6 };
+
+        int64_t KNIGHT_PSQT[64] = { -6,-5,-5,-5,-5,-5,-5,-6,
+                                    -5, 0, 0, 5, 5, 0, 0,-5,
+                                    -5, 0, 6, 6, 6, 6, 0,-5,
+                                    -5, 0, 6, 7, 7, 6, 0,-5,
+                                    -5, 0, 6, 7, 7, 6, 0,-5,
+                                    -5, 0, 6, 6, 6, 6, 0,-5,
+                                    -5, 0, 0, 0, 0, 0, 0,-5,
+                                    -6,-5,-5,-5,-5,-5,-5,-6 };
 };
 
 #endif // CHESS_H

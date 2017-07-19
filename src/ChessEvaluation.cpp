@@ -26,22 +26,52 @@ int64_t Chess::materialEvaluation() {
 int64_t Chess::positionEvaluation() {
     uint64_t score = 0;
 
-    uint64_t whiteAttacking = getWhiteAttacking();
-    uint64_t blackAttacking = getBlackAttacking();
+    //white pawns positions
+    uint64_t white_pawns = BOARD[PAWN] & BOARD[WHITE];
+    while( white_pawns != 0 ) {
+        uint8_t position = __builtin_ffsll( white_pawns )-1;
+        score += PAWN_PSQT[position];
+        white_pawns &= ~( uint64_t(1) << position );
+    }
 
-    for( array<uint64_t, 4>::iterator it = CENTER_SQARES.begin(); it!=CENTER_SQARES.end(); ++it) {
-        if( (*it) & whiteAttacking ) {
-            score += 1;
-        }
-        if( (*it) & blackAttacking ) {
-            score -= 1;
-        }
-        if( (*it) & BOARD[WHITE] ) {
-            score += 1;
-        }
-        if( (*it) & BOARD[BLACK] ) {
-            score -= 1;
-        }
+    //black pawns positions
+    uint64_t black_pawns = BOARD[PAWN] & BOARD[BLACK];
+    while( black_pawns != 0 ) {
+        uint8_t position = __builtin_ffsll( black_pawns )-1;
+        score -= PAWN_PSQT[64-position];
+        black_pawns &= ~( uint64_t(1) << position );
+    }
+
+    //white knight positions
+    uint64_t white_knights = BOARD[KNIGHT] & BOARD[WHITE];
+    while( white_knights != 0 ) {
+        uint8_t position = __builtin_ffsll( white_knights )-1;
+        score += KNIGHT_PSQT[position];
+        white_knights &= ~( uint64_t(1) << position );
+    }
+
+    //black knight positions
+    uint64_t black_knights = BOARD[KNIGHT] & BOARD[BLACK];
+    while( black_knights != 0 ) {
+        uint8_t position = __builtin_ffsll( black_knights )-1;
+        score += KNIGHT_PSQT[64-position];
+        black_knights &= ~( uint64_t(1) << position );
+    }
+
+    //white bishop positions
+    uint64_t white_bishops = BOARD[BISHOP] & BOARD[WHITE];
+    while( white_bishops != 0 ) {
+        uint8_t position = __builtin_ffsll( white_bishops )-1;
+        score += BISHOP_PSQT[position];
+        white_bishops &= ~( uint64_t(1) << position );
+    }
+
+    //black bishop positions
+    uint64_t black_bishops = BOARD[BISHOP] & BOARD[BLACK];
+    while( black_knights != 0 ) {
+        uint8_t position = __builtin_ffsll( black_bishops )-1;
+        score += BISHOP_PSQT[64-position];
+        black_bishops &= ~( uint64_t(1) << position );
     }
 
     return score;
