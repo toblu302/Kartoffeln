@@ -148,7 +148,6 @@ void Chess::setup(string fenString) {
 
 void Chess::UCIgetReady() {
     this->depthOnly = false;
-    //this->bestMove = "0000";
     this->depthLimit = 4;
     this->searchInterrupted = false;
 }

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <utility>
+#include <limits.h>
 #include "Chess.h"
 #include <stdlib.h>
 #include <time.h>
@@ -70,14 +71,15 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
         return 0;
     }
 
-    if( depth == 0 ) {
-        return Evaluate();
-    }
-
     vector< Move > candidates;
     getAllMoves(candidates);
+
     if( candidates.size() == 0 ) {
-        return (turn == 'w') ? -1000000 : 1000000;
+        return (turn == 'w') ? INT64_MIN : INT64_MAX;
+    }
+
+    if( depth == 0 ) {
+        return Evaluate();
     }
 
     int64_t bestScore = (turn == 'w') ? alpha : beta;
