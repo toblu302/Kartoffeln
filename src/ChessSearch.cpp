@@ -22,7 +22,7 @@ Move Chess::getBestMove() {
     //if we're only doing depth, do a simple alpha-beta search
     if( depthOnly ) {
         setTimer( -1 );
-        alphaBetaSearch(-10000000, 10000000, depthLimit);
+        alphaBetaSearch(INT64_MIN, INT64_MAX, depthLimit);
         return this->bestMove;
     }
     else {
@@ -45,7 +45,7 @@ Move Chess::getBestMove() {
         depthLimit = 1;
         Move lastMove;
         while( hasTimeLeft() ) {
-            alphaBetaSearch(-10000000, 10000000, depthLimit);
+            alphaBetaSearch(INT64_MIN, INT64_MAX, depthLimit);
 
             //If the search was interrupted, set the best move the the best move from the last search
             if( searchInterrupted ) {
@@ -78,7 +78,7 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
     getAllMoves(candidates);
 
     if( candidates.size() == 0 ) {
-        return (turn == 'w') ? INT64_MIN : INT64_MAX;
+        return (turn == 'w') ? INT64_MIN+1 : INT64_MAX-1;
     }
 
     if( depth == 0 ) {
