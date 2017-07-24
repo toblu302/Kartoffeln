@@ -45,7 +45,6 @@ Move Chess::getBestMove() {
         depthLimit = 1;
         Move lastMove;
         while( hasTimeLeft() ) {
-
             alphaBetaSearch(-10000000, 10000000, depthLimit);
 
             //If the search was interrupted, set the best move the the best move from the last search
@@ -53,6 +52,10 @@ Move Chess::getBestMove() {
                 this->bestMove = lastMove;
                 break;
             }
+
+            //send info using UCI
+            cout << "info depth " << int(this->depthLimit) << " pv " << moveToString(this->bestMove) << endl;
+
 
             lastMove = bestMove;
             depthLimit += 1;
@@ -114,7 +117,6 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
                 }
             }
         }
-
     }
 
     //if we're at the root, bestMove should be set
