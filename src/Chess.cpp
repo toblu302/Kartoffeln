@@ -231,13 +231,30 @@ uint64_t Chess::stringToBitPosition(string position) {
 }
 
 bool Chess::isChecking() {
-    uint64_t bitMoves;
+    uint64_t this_side_pieces = (turn=='w') ? BOARD[WHITE] : BOARD[BLACK];
+
+    uint64_t blockers = (turn=='w') ? BOARD[BLACK] : BOARD[WHITE]; //get the other players pieces
+    uint32_t king_position = __builtin_ffsll( BOARD[KING] & blockers )-1; //get the other players king
+
+    uint64_t diagonal_sliders = getSlindingAlongDiagonalA1H8(king_position, blockers) | getSlindingAlongDiagonalA8H1(king_position, blockers);
+    uint64_t vertical_sliders = getSlindingAlongFile(king_position, blockers) | getSlindingAlongRank(king_position, blockers);
+
+    uint64_t bitMoves = uint64_t(0);
+    bitMoves |= getKnightMoves(king_position, 0) & BOARD[KNIGHT];
+    bitMoves |= getKingMoves(king_position, blockers) & BOARD[KING];
+    bitMoves |= diagonal_sliders & BOARD[BISHOP];
+    bitMoves |= diagonal_sliders & BOARD[QUEEN];
+    bitMoves |= vertical_sliders & BOARD[ROOK];
+    bitMoves |= vertical_sliders & BOARD[QUEEN];
+
     if( turn == 'w' ) {
-        bitMoves = getWhiteAttacking();
-        return (bitMoves & BOARD[KING] & BOARD[BLACK]) != 0;
+        bitMoves |= getBlackPawnAttackMoves( uint64_t(1) << king_position ) & BOARD[PAWN];
     }
-    bitMoves = getBlackAttacking();
-    return (bitMoves & BOARD[KING] & BOARD[WHITE]) != 0;
+    else {
+        bitMoves |= getWhitePawnAttackMoves( uint64_t(1) << king_position ) & BOARD[PAWN];
+    }
+
+    return (bitMoves & this_side_pieces) != 0;
 }
 
 string Chess::moveToString(Move mv) {
