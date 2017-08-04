@@ -68,11 +68,11 @@ class Chess
         uint64_t getBlackAttacking();
 
         uint64_t getSlidingMovesFromOccupancy(uint8_t column, uint8_t occupancy);
-        uint64_t getSlindingAlongRank(uint8_t piece_position, uint64_t blockers);
-        uint64_t getSlindingAlongFile(uint8_t piece_position, uint64_t blockers);
+        uint64_t getSlidingAlongRank(uint8_t piece_position, uint64_t blockers);
+        uint64_t getSlidingAlongFile(uint8_t piece_position, uint64_t blockers);
 
-        uint64_t getSlindingAlongDiagonalA1H8(uint8_t piece_position, uint64_t blockers);
-        uint64_t getSlindingAlongDiagonalA8H1(uint8_t piece_position, uint64_t blockers);
+        uint64_t getSlidingAlongDiagonalA1H8(uint8_t piece_position, uint64_t blockers);
+        uint64_t getSlidingAlongDiagonalA8H1(uint8_t piece_position, uint64_t blockers);
 
         // Helpful constants
         const uint64_t FILE_A = (uint64_t(1) | uint64_t(1) << 8 | uint64_t(1) << 16 | uint64_t(1) << 24 | uint64_t(1) << 32 | uint64_t(1) << 40 | uint64_t(1) << 48 | uint64_t(1) << 56);

@@ -173,24 +173,24 @@ void Chess::getAllMoves(vector<Move> &moves) {
             mv.from_bitmove = shifted;
         }
         else if( BOARD[ ROOK ] & shifted & BOARD[mv.color] ) {
-            bitMoves = getSlindingAlongRank( x, blockers );
-            bitMoves |= getSlindingAlongFile( x, blockers );
+            bitMoves = getSlidingAlongRank( x, blockers );
+            bitMoves |= getSlidingAlongFile( x, blockers );
 
             mv.from_bitboard = ROOK;
             mv.from_bitmove = shifted;
         }
         else if( BOARD[ BISHOP ] & shifted & BOARD[mv.color] ) {
-            bitMoves = getSlindingAlongDiagonalA1H8( x, blockers );
-            bitMoves |= getSlindingAlongDiagonalA8H1( x, blockers );
+            bitMoves = getSlidingAlongDiagonalA1H8( x, blockers );
+            bitMoves |= getSlidingAlongDiagonalA8H1( x, blockers );
 
             mv.from_bitboard = BISHOP;
             mv.from_bitmove = shifted;
         }
         else if( BOARD[ QUEEN ] & shifted & BOARD[mv.color] ) {
-            bitMoves = getSlindingAlongDiagonalA1H8( x, blockers );
-            bitMoves |= getSlindingAlongDiagonalA8H1( x, blockers );
-            bitMoves |= getSlindingAlongRank( x, blockers );
-            bitMoves |= getSlindingAlongFile( x, blockers );
+            bitMoves = getSlidingAlongDiagonalA1H8( x, blockers );
+            bitMoves |= getSlidingAlongDiagonalA8H1( x, blockers );
+            bitMoves |= getSlidingAlongRank( x, blockers );
+            bitMoves |= getSlidingAlongFile( x, blockers );
 
             mv.from_bitboard = QUEEN;
             mv.from_bitmove = shifted;

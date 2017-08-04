@@ -236,8 +236,8 @@ bool Chess::isChecking() {
     uint64_t blockers = (turn=='w') ? BOARD[BLACK] : BOARD[WHITE]; //get the other players pieces
     uint32_t king_position = __builtin_ffsll( BOARD[KING] & blockers )-1; //get the other players king
 
-    uint64_t diagonal_sliders = getSlindingAlongDiagonalA1H8(king_position, blockers) | getSlindingAlongDiagonalA8H1(king_position, blockers);
-    uint64_t vertical_sliders = getSlindingAlongFile(king_position, blockers) | getSlindingAlongRank(king_position, blockers);
+    uint64_t diagonal_sliders = getSlidingAlongDiagonalA1H8(king_position, blockers) | getSlidingAlongDiagonalA8H1(king_position, blockers);
+    uint64_t vertical_sliders = getSlidingAlongFile(king_position, blockers) | getSlidingAlongRank(king_position, blockers);
 
     uint64_t bitMoves = uint64_t(0);
     bitMoves |= getKnightMoves(king_position, 0) & BOARD[KNIGHT];

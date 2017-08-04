@@ -91,7 +91,7 @@ uint64_t Chess::getSlidingMovesFromOccupancy(uint8_t column, uint8_t occupancy) 
     return retValue;
 }
 
-uint64_t Chess::getSlindingAlongRank(uint8_t piece_position, uint64_t blockers) {
+uint64_t Chess::getSlidingAlongRank(uint8_t piece_position, uint64_t blockers) {
     //convert a rank to a 8 bit number representing where the pieces on the rank are at
     uint8_t column = piece_position%8;
     uint8_t row = (piece_position-column)/8;
@@ -101,7 +101,7 @@ uint64_t Chess::getSlindingAlongRank(uint8_t piece_position, uint64_t blockers) 
     return (getSlidingMovesFromOccupancy(column, occupancy) << (row*8)) & ~blockers;
 }
 
-uint64_t Chess::getSlindingAlongFile(uint8_t piece_position, uint64_t blockers) {
+uint64_t Chess::getSlidingAlongFile(uint8_t piece_position, uint64_t blockers) {
 
     uint8_t column = piece_position%8;
     uint8_t row = (piece_position-column)/8;
@@ -124,7 +124,7 @@ uint64_t Chess::getSlindingAlongFile(uint8_t piece_position, uint64_t blockers) 
     return (bitMoves << column) & ~blockers;
 }
 
-uint64_t Chess::getSlindingAlongDiagonalA1H8(uint8_t piece_position, uint64_t blockers) {
+uint64_t Chess::getSlidingAlongDiagonalA1H8(uint8_t piece_position, uint64_t blockers) {
 
     uint64_t ALL_PIECES = (BOARD[WHITE] | BOARD[BLACK]);
 
@@ -158,7 +158,7 @@ uint64_t Chess::getSlindingAlongDiagonalA1H8(uint8_t piece_position, uint64_t bl
     return bitMoves & ~blockers;
 }
 
-uint64_t Chess::getSlindingAlongDiagonalA8H1(uint8_t piece_position, uint64_t blockers) {
+uint64_t Chess::getSlidingAlongDiagonalA8H1(uint8_t piece_position, uint64_t blockers) {
 
     uint64_t ALL_PIECES = (BOARD[WHITE] | BOARD[BLACK]);
 
@@ -209,18 +209,18 @@ uint64_t Chess::getWhiteAttacking()
             bitMoves |= getKnightMoves( x, blockers );
         }
         else if( BOARD[ ROOK ] & shifted & BOARD[WHITE] ) {
-            bitMoves |= getSlindingAlongRank( x, blockers );
-            bitMoves |= getSlindingAlongFile( x, blockers );
+            bitMoves |= getSlidingAlongRank( x, blockers );
+            bitMoves |= getSlidingAlongFile( x, blockers );
         }
         else if( BOARD[ BISHOP ] & shifted & BOARD[WHITE] ) {
-            bitMoves |= getSlindingAlongDiagonalA1H8( x, blockers );
-            bitMoves |= getSlindingAlongDiagonalA8H1( x, blockers );
+            bitMoves |= getSlidingAlongDiagonalA1H8( x, blockers );
+            bitMoves |= getSlidingAlongDiagonalA8H1( x, blockers );
         }
         else if( BOARD[ QUEEN ] & shifted & BOARD[WHITE] ) {
-            bitMoves |= getSlindingAlongDiagonalA1H8( x, blockers );
-            bitMoves |= getSlindingAlongDiagonalA8H1( x, blockers );
-            bitMoves |= getSlindingAlongRank( x, blockers );
-            bitMoves |= getSlindingAlongFile( x, blockers );
+            bitMoves |= getSlidingAlongDiagonalA1H8( x, blockers );
+            bitMoves |= getSlidingAlongDiagonalA8H1( x, blockers );
+            bitMoves |= getSlidingAlongRank( x, blockers );
+            bitMoves |= getSlidingAlongFile( x, blockers );
         }
     }
     return bitMoves;
@@ -243,18 +243,18 @@ uint64_t Chess::getBlackAttacking()
             bitMoves |= getKnightMoves( x, blockers );
         }
         else if( BOARD[ ROOK ] & shifted & BOARD[BLACK] ) {
-            bitMoves |= getSlindingAlongRank( x, blockers );
-            bitMoves |= getSlindingAlongFile( x, blockers );
+            bitMoves |= getSlidingAlongRank( x, blockers );
+            bitMoves |= getSlidingAlongFile( x, blockers );
         }
         else if( BOARD[ BISHOP ] & shifted & BOARD[BLACK] ) {
-            bitMoves |= getSlindingAlongDiagonalA1H8( x, blockers );
-            bitMoves |= getSlindingAlongDiagonalA8H1( x, blockers );
+            bitMoves |= getSlidingAlongDiagonalA1H8( x, blockers );
+            bitMoves |= getSlidingAlongDiagonalA8H1( x, blockers );
         }
         else if( BOARD[ QUEEN ] & shifted & BOARD[BLACK] ) {
-            bitMoves |= getSlindingAlongDiagonalA1H8( x, blockers );
-            bitMoves |= getSlindingAlongDiagonalA8H1( x, blockers );
-            bitMoves |= getSlindingAlongRank( x, blockers );
-            bitMoves |= getSlindingAlongFile( x, blockers );
+            bitMoves |= getSlidingAlongDiagonalA1H8( x, blockers );
+            bitMoves |= getSlidingAlongDiagonalA8H1( x, blockers );
+            bitMoves |= getSlidingAlongRank( x, blockers );
+            bitMoves |= getSlidingAlongFile( x, blockers );
         }
     }
     return bitMoves;
