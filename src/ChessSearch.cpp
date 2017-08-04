@@ -131,11 +131,11 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
 void Chess::getAllMoves(vector<Move> &moves) {
 
     uint64_t blockers = 0;
-    if( this->turn == 'w' ) {
-        blockers = BOARD[WHITE];
+    if( turn == 'w' ) {
+        blockers = board.color[WHITE];
     }
     else {
-        blockers = BOARD[BLACK];
+        blockers = board.color[BLACK];
     }
 
     Move mv;
@@ -146,53 +146,53 @@ void Chess::getAllMoves(vector<Move> &moves) {
         uint64_t shifted = uint64_t(1) << x;
         uint64_t bitMoves = 0;
 
-        if( turn == 'w' && (BOARD[PAWN] & shifted & BOARD[WHITE]) ) {
+        if( turn == 'w' && (board.pieces[PAWN] & shifted & board.color[WHITE]) ) {
             bitMoves = getWhitePawnMoves( shifted );
 
-            mv.from_bitboard = PAWN;
+            mv.moving_piece = PAWN;
             mv.from_bitmove = shifted;
         }
-        else if( turn == 'b' && (BOARD[PAWN] & shifted & BOARD[BLACK]) ) {
+        else if( turn == 'b' && (board.pieces[PAWN] & shifted & board.color[BLACK]) ) {
             bitMoves = getBlackPawnMoves( shifted );
 
-            mv.from_bitboard = PAWN;
+            mv.moving_piece = PAWN;
             mv.from_bitmove = shifted;
         }
 
-        if( BOARD[KING] & shifted & BOARD[mv.color] ) {
+        if( board.pieces[KING] & shifted & board.color[mv.color] ) {
             bitMoves = getKingMoves( x, blockers );
             bitMoves |= getKingCastles(x);
 
-            mv.from_bitboard = KING;
+            mv.moving_piece = KING;
             mv.from_bitmove = shifted;
         }
-        else if( BOARD[ KNIGHT ] & shifted & BOARD[mv.color] ) {
+        else if( board.pieces[ KNIGHT ] & shifted & board.color[mv.color] ) {
             bitMoves = getKnightMoves( x, blockers );
 
-            mv.from_bitboard = KNIGHT;
+            mv.moving_piece = KNIGHT;
             mv.from_bitmove = shifted;
         }
-        else if( BOARD[ ROOK ] & shifted & BOARD[mv.color] ) {
+        else if( board.pieces[ ROOK ] & shifted & board.color[mv.color] ) {
             bitMoves = getSlidingAlongRank( x, blockers );
             bitMoves |= getSlidingAlongFile( x, blockers );
 
-            mv.from_bitboard = ROOK;
+            mv.moving_piece = ROOK;
             mv.from_bitmove = shifted;
         }
-        else if( BOARD[ BISHOP ] & shifted & BOARD[mv.color] ) {
+        else if( board.pieces[ BISHOP ] & shifted & board.color[mv.color] ) {
             bitMoves = getSlidingAlongDiagonalA1H8( x, blockers );
             bitMoves |= getSlidingAlongDiagonalA8H1( x, blockers );
 
-            mv.from_bitboard = BISHOP;
+            mv.moving_piece = BISHOP;
             mv.from_bitmove = shifted;
         }
-        else if( BOARD[ QUEEN ] & shifted & BOARD[mv.color] ) {
+        else if( board.pieces[ QUEEN ] & shifted & board.color[mv.color] ) {
             bitMoves = getSlidingAlongDiagonalA1H8( x, blockers );
             bitMoves |= getSlidingAlongDiagonalA8H1( x, blockers );
             bitMoves |= getSlidingAlongRank( x, blockers );
             bitMoves |= getSlidingAlongFile( x, blockers );
 
-            mv.from_bitboard = QUEEN;
+            mv.moving_piece = QUEEN;
             mv.from_bitmove = shifted;
         }
 
@@ -208,20 +208,20 @@ void Chess::getAllMoves(vector<Move> &moves) {
             mv.move_type = QUIET;
 
             //handle captures
-            if ( (turn == 'b' && (mv.to_bitmove & BOARD[WHITE])) ||
-                 (turn == 'w' && (mv.to_bitmove & BOARD[BLACK])) ) {
+            if ( (turn == 'b' && (mv.to_bitmove & board.color[WHITE])) ||
+                 (turn == 'w' && (mv.to_bitmove & board.color[BLACK])) ) {
 
                 mv.move_type = CAPTURE;
 
-                for( int board=0; board<BITBOARD_PIECES; ++board ) {
-                    if( BOARD[ board ] & mv.to_bitmove ) {
-                        mv.captured_bitboard = BITBOARDS(board);
+                for( int captured_board=0; captured_board<NUM_PIECES; ++captured_board ) {
+                    if( board.pieces[ captured_board ] & mv.to_bitmove ) {
+                        mv.captured_piece = PIECE(captured_board);
                     }
                 }
             }
 
             //handle promotions
-            if( mv.from_bitboard == PAWN && ((mv.to_bitmove & 0xFF) | (mv.to_bitmove & (uint64_t(0xFF) << 56))) ) {
+            if( mv.moving_piece == PAWN && ((mv.to_bitmove & 0xFF) | (mv.to_bitmove & (uint64_t(0xFF) << 56))) ) {
                 if( mv.move_type == CAPTURE ) {
                     mv.move_type = PROMOTION_QUEEN_CAPTURE;
                     if( isValid(mv) ) moves.push_back(mv);
@@ -245,19 +245,19 @@ void Chess::getAllMoves(vector<Move> &moves) {
             }
 
             //handle double pushes
-            else if ( (mv.from_bitboard == PAWN) &&
+            else if ( (mv.moving_piece == PAWN) &&
                        ( ((mv.to_bitmove >> 16) == mv.from_bitmove) ||
                          ((mv.to_bitmove << 16) == mv.from_bitmove)) ) {
                 mv.move_type = DOUBLE_PAWN;
             }
 
             //handle en passant captures
-            else if( (mv.to_bitmove & BOARD[EN_PASSANT_SQUARE]) && (mv.from_bitboard == PAWN) ) {
+            else if( (mv.to_bitmove & board.EN_PASSANT_SQUARE) && (mv.moving_piece == PAWN) ) {
                 mv.move_type = EN_PASSANT_CAPTURE;
             }
 
             //handle castling
-            else if (mv.from_bitboard == KING) {
+            else if (mv.moving_piece == KING) {
                 if( (mv.to_bitmove >> 2) == mv.from_bitmove ) {
                     mv.move_type = CASTLING_KINGSIDE;
                 }

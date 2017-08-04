@@ -9,6 +9,7 @@
 #include <stdint.h>
 
 #include "Move.h"
+#include "Board.h"
 
 using namespace std;
 
@@ -51,9 +52,8 @@ class Chess
     private:
         //Board representation
         char turn;
-
-        array<uint64_t, BITBOARD_COUNT> BOARD;
-        stack< array<uint64_t, BITBOARD_COUNT> > boardStateStack;
+        Board board;
+        stack< Board > boardStateStack;
 
         //Move generators (ChessMoveGenerator.cpp)
         uint64_t getWhitePawnAttackMoves(uint64_t WHITE_PAWNS);

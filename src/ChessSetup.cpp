@@ -11,17 +11,17 @@ void Chess::setup() {
 void Chess::setup(string fenString) {
 
     //reset stuff
-    BOARD[WHITE] = 0;
-    BOARD[BLACK] = 0;
-    BOARD[PAWN] = 0;
-    BOARD[ROOK] = 0;
-    BOARD[KNIGHT] = 0;
-    BOARD[BISHOP] = 0;
-    BOARD[QUEEN] = 0;
-    BOARD[KING] = 0;
+    board.color[WHITE] = 0;
+    board.color[BLACK] = 0;
+    board.pieces[PAWN] = 0;
+    board.pieces[ROOK] = 0;
+    board.pieces[KNIGHT] = 0;
+    board.pieces[BISHOP] = 0;
+    board.pieces[QUEEN] = 0;
+    board.pieces[KING] = 0;
 
-    BOARD[EN_PASSANT_SQUARE] = 0;
-    BOARD[CASTLE_RIGHTS] = 0;
+    board.EN_PASSANT_SQUARE = 0;
+    board.CASTLE_RIGHTS = 0;
 
     winc = 0;
     wtime = -1;
@@ -58,52 +58,52 @@ void Chess::setup(string fenString) {
             uint64_t bit = uint64_t(1) << ((currentY*8)+currentX);
             switch( piece ) {
                 case 'P':
-                    BOARD[PAWN] |= bit;
-                    BOARD[WHITE] |= bit;
+                    board.pieces[PAWN] |= bit;
+                    board.color[WHITE] |= bit;
                     break;
                 case 'p':
-                    BOARD[PAWN] |= bit;
-                    BOARD[BLACK] |= bit;
+                    board.pieces[PAWN] |= bit;
+                    board.color[BLACK] |= bit;
                     break;
                 case 'R':
-                    BOARD[ROOK] |= bit;
-                    BOARD[WHITE] |= bit;
+                    board.pieces[ROOK] |= bit;
+                    board.color[WHITE] |= bit;
                     break;
                 case 'r':
-                    BOARD[ROOK] |= bit;
-                    BOARD[BLACK] |= bit;
+                    board.pieces[ROOK] |= bit;
+                    board.color[BLACK] |= bit;
                     break;
                 case 'N':
-                    BOARD[KNIGHT] |= bit;
-                    BOARD[WHITE] |= bit;
+                    board.pieces[KNIGHT] |= bit;
+                    board.color[WHITE] |= bit;
                     break;
                 case 'n':
-                    BOARD[KNIGHT] |= bit;
-                    BOARD[BLACK] |= bit;
+                    board.pieces[KNIGHT] |= bit;
+                    board.color[BLACK] |= bit;
                     break;
                 case 'B':
-                    BOARD[BISHOP] |= bit;
-                    BOARD[WHITE] |= bit;
+                    board.pieces[BISHOP] |= bit;
+                    board.color[WHITE] |= bit;
                     break;
                 case 'b':
-                    BOARD[BISHOP] |= bit;
-                    BOARD[BLACK] |= bit;
+                    board.pieces[BISHOP] |= bit;
+                    board.color[BLACK] |= bit;
                     break;
                 case 'Q':
-                    BOARD[QUEEN] |= bit;
-                    BOARD[WHITE] |= bit;
+                    board.pieces[QUEEN] |= bit;
+                    board.color[WHITE] |= bit;
                     break;
                 case 'q':
-                    BOARD[QUEEN] |= bit;
-                    BOARD[BLACK] |= bit;
+                    board.pieces[QUEEN] |= bit;
+                    board.color[BLACK] |= bit;
                     break;
                 case 'K':
-                    BOARD[KING] |= bit;
-                    BOARD[WHITE] |= bit;
+                    board.pieces[KING] |= bit;
+                    board.color[WHITE] |= bit;
                     break;
                 case 'k':
-                    BOARD[KING] |= bit;
-                    BOARD[BLACK] |= bit;
+                    board.pieces[KING] |= bit;
+                    board.color[BLACK] |= bit;
                     break;
             }
 
@@ -111,21 +111,21 @@ void Chess::setup(string fenString) {
         }
     }
 
-    this->turn = tokens[1][0];
+    turn = tokens[1][0];
 
     for(auto character: tokens[2]) {
         switch(character) {
             case 'K':
-                BOARD[CASTLE_RIGHTS] |= (1<<6);
+                board.CASTLE_RIGHTS |= (1<<6);
                 break;
             case 'Q':
-                BOARD[CASTLE_RIGHTS] |= (1<<2);
+                board.CASTLE_RIGHTS |= (1<<2);
                 break;
             case 'k':
-                BOARD[CASTLE_RIGHTS] |= (uint64_t(1)<<62);
+                board.CASTLE_RIGHTS |= (uint64_t(1)<<62);
                 break;
             case 'q':
-                BOARD[CASTLE_RIGHTS] |= (uint64_t(1)<<58);
+                board.CASTLE_RIGHTS |= (uint64_t(1)<<58);
                 break;
 
             case '-':
@@ -137,7 +137,7 @@ void Chess::setup(string fenString) {
     if( tokens[3][0] != '-' ) {
         uint8_t enPassantX = tokens[3][0] - 'a';
         uint8_t enPassantY = tokens[3][1] - '1';
-        BOARD[EN_PASSANT_SQUARE] = uint64_t(1) << ( enPassantY*8 + enPassantX );
+        board.EN_PASSANT_SQUARE = uint64_t(1) << ( enPassantY*8 + enPassantX );
     }
 
     if( tokens.size() >= 5 ) {

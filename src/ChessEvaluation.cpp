@@ -9,17 +9,17 @@ int64_t Chess::materialEvaluation() {
 
     int64_t score = 0;
 
-    score += 10*( __builtin_popcountll( BOARD[PAWN] & BOARD[WHITE] ) );
-    score += 30*( __builtin_popcountll( BOARD[KNIGHT] & BOARD[WHITE] ) );
-    score += 30*( __builtin_popcountll( BOARD[BISHOP] & BOARD[WHITE] ) );
-    score += 50*( __builtin_popcountll( BOARD[ROOK] & BOARD[WHITE] ) );
-    score += 90*( __builtin_popcountll( BOARD[QUEEN] & BOARD[WHITE] ) );
+    score += 10*( __builtin_popcountll( board.pieces[PAWN] & board.color[WHITE] ) );
+    score += 30*( __builtin_popcountll( board.pieces[KNIGHT] & board.color[WHITE] ) );
+    score += 30*( __builtin_popcountll( board.pieces[BISHOP] & board.color[WHITE] ) );
+    score += 50*( __builtin_popcountll( board.pieces[ROOK] & board.color[WHITE] ) );
+    score += 90*( __builtin_popcountll( board.pieces[QUEEN] & board.color[WHITE] ) );
 
-    score -= 10*( __builtin_popcountll( BOARD[PAWN] & BOARD[BLACK] ) );
-    score -= 30*( __builtin_popcountll( BOARD[KNIGHT] & BOARD[BLACK] ) );
-    score -= 30*( __builtin_popcountll( BOARD[BISHOP] & BOARD[BLACK] ) );
-    score -= 50*( __builtin_popcountll( BOARD[ROOK] & BOARD[BLACK] ) );
-    score -= 90*( __builtin_popcountll( BOARD[QUEEN] & BOARD[BLACK] ) );
+    score -= 10*( __builtin_popcountll( board.pieces[PAWN] & board.color[BLACK] ) );
+    score -= 30*( __builtin_popcountll( board.pieces[KNIGHT] & board.color[BLACK] ) );
+    score -= 30*( __builtin_popcountll( board.pieces[BISHOP] & board.color[BLACK] ) );
+    score -= 50*( __builtin_popcountll( board.pieces[ROOK] & board.color[BLACK] ) );
+    score -= 90*( __builtin_popcountll( board.pieces[QUEEN] & board.color[BLACK] ) );
 
     return score;
 }
@@ -28,7 +28,7 @@ int64_t Chess::positionEvaluation() {
     uint64_t score = 0;
 
     //white pawns positions
-    uint64_t white_pawns = BOARD[PAWN] & BOARD[WHITE];
+    uint64_t white_pawns = board.pieces[PAWN] & board.color[WHITE];
     while( white_pawns != 0 ) {
         uint8_t position = __builtin_ffsll( white_pawns )-1;
         score += PAWN_PSQT[position];
@@ -36,7 +36,7 @@ int64_t Chess::positionEvaluation() {
     }
 
     //black pawns positions
-    uint64_t black_pawns = BOARD[PAWN] & BOARD[BLACK];
+    uint64_t black_pawns = board.pieces[PAWN] & board.color[BLACK];
     while( black_pawns != 0 ) {
         uint8_t position = __builtin_ffsll( black_pawns )-1;
         score -= PAWN_PSQT[64-position];
@@ -44,7 +44,7 @@ int64_t Chess::positionEvaluation() {
     }
 
     //white knight positions
-    uint64_t white_knights = BOARD[KNIGHT] & BOARD[WHITE];
+    uint64_t white_knights = board.pieces[KNIGHT] & board.color[WHITE];
     while( white_knights != 0 ) {
         uint8_t position = __builtin_ffsll( white_knights )-1;
         score += KNIGHT_PSQT[position];
@@ -52,7 +52,7 @@ int64_t Chess::positionEvaluation() {
     }
 
     //black knight positions
-    uint64_t black_knights = BOARD[KNIGHT] & BOARD[BLACK];
+    uint64_t black_knights = board.pieces[KNIGHT] & board.color[BLACK];
     while( black_knights != 0 ) {
         uint8_t position = __builtin_ffsll( black_knights )-1;
         score += KNIGHT_PSQT[64-position];
@@ -60,7 +60,7 @@ int64_t Chess::positionEvaluation() {
     }
 
     //white bishop positions
-    uint64_t white_bishops = BOARD[BISHOP] & BOARD[WHITE];
+    uint64_t white_bishops = board.pieces[BISHOP] & board.color[WHITE];
     while( white_bishops != 0 ) {
         uint8_t position = __builtin_ffsll( white_bishops )-1;
         score += BISHOP_PSQT[position];
@@ -68,7 +68,7 @@ int64_t Chess::positionEvaluation() {
     }
 
     //black bishop positions
-    uint64_t black_bishops = BOARD[BISHOP] & BOARD[BLACK];
+    uint64_t black_bishops = board.pieces[BISHOP] & board.color[BLACK];
     while( black_knights != 0 ) {
         uint8_t position = __builtin_ffsll( black_bishops )-1;
         score += BISHOP_PSQT[64-position];

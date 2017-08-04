@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "Pieces.h"
+#include "Board.h"
 
 enum MOVETYPE {
     QUIET, CAPTURE, EN_PASSANT_CAPTURE,
@@ -15,17 +15,16 @@ enum MOVETYPE {
 };
 
 struct Move {
+    COLOR color;
     MOVETYPE move_type;
 
     //regular moves
     uint64_t from_bitmove;
     uint64_t to_bitmove;
-    BITBOARDS from_bitboard;
+    PIECE moving_piece;
 
     //captures
-    BITBOARDS captured_bitboard;
-
-    BITBOARDS color;
+    PIECE captured_piece;
 };
 
 #endif // MOVE_H_INCLUDED
