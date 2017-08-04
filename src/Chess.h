@@ -7,39 +7,10 @@
 #include <array>
 #include <ctime>
 #include <stdint.h>
+
+#include "Move.h"
+
 using namespace std;
-
-#define BITBOARD_COUNT 10
-#define BITBOARD_PIECES 6
-enum BITBOARDS {
-    PAWN=0, ROOK=1, KNIGHT=2, BISHOP=3, QUEEN=4, KING=5,
-    WHITE=6, BLACK=7,
-    EN_PASSANT_SQUARE=8,
-    CASTLE_RIGHTS=9
-};
-
-enum MOVETYPE {
-    QUIET, CAPTURE, EN_PASSANT_CAPTURE,
-    PROMOTION_QUEEN, PROMOTION_KNIGHT, PROMOTION_ROOK, PROMOTION_BISHOP,
-    PROMOTION_QUEEN_CAPTURE, PROMOTION_KNIGHT_CAPTURE, PROMOTION_ROOK_CAPTURE, PROMOTION_BISHOP_CAPTURE,
-    CASTLING_KINGSIDE, CASTLING_QUEENSIDE,
-    DOUBLE_PAWN,
-    NONE
-};
-
-struct Move {
-    MOVETYPE move_type;
-
-    //regular moves
-    uint64_t from_bitmove;
-    uint64_t to_bitmove;
-    BITBOARDS from_bitboard;
-
-    //captures
-    BITBOARDS captured_bitboard;
-
-    BITBOARDS color;
-};
 
 class Chess
 {
@@ -132,36 +103,6 @@ class Chess
         int64_t Evaluate(); //ChessEvaluation.cpp
         int64_t materialEvaluation(); //ChessEvaluation.cpp
         int64_t positionEvaluation(); //ChessEvaluation.cpp
-
-
-        //Piece-Square Tables
-        int64_t PAWN_PSQT[64] = {  0, 0, 0, 0, 0, 0, 0, 0,
-                                   3, 3,-5,-5,-5,-5, 3, 3,
-                                   0, 0, 0, 0, 0, 0, 0, 0,
-                                   1, 1, 1, 8, 8, 1, 1, 1,
-                                   5, 0, 0, 8, 8, 0, 0, 5,
-                                   3, 3, 3, 5, 5, 3, 3, 3,
-                                   9, 9, 9, 9, 9, 9, 9, 9,
-                                   0, 0, 0, 0, 0, 0, 0, 0 };
-
-
-        int64_t BISHOP_PSQT[64] = { -6,-5,-5,-5,-5,-5,-5,-6,
-                                    -5, 0, 0, 0, 0, 0, 0,-5,
-                                    -5, 6, 6, 6, 6, 6, 6,-5,
-                                    -5, 0, 6, 6, 6, 6, 0,-5,
-                                    -5, 0, 6, 6, 6, 6, 0,-5,
-                                    -5, 0, 4, 4, 4, 4, 0,-5,
-                                    -5, 0, 0, 0, 0, 0, 0,-5,
-                                    -6,-5,-5,-5,-5,-5,-5,-6 };
-
-        int64_t KNIGHT_PSQT[64] = { -6,-5,-5,-5,-5,-5,-5,-6,
-                                    -5, 0, 0, 5, 5, 0, 0,-5,
-                                    -5, 0, 6, 6, 6, 6, 0,-5,
-                                    -5, 0, 6, 7, 7, 6, 0,-5,
-                                    -5, 0, 6, 7, 7, 6, 0,-5,
-                                    -5, 0, 6, 6, 6, 6, 0,-5,
-                                    -5, 0, 0, 0, 0, 0, 0,-5,
-                                    -6,-5,-5,-5,-5,-5,-5,-6 };
 };
 
 #endif // CHESS_H

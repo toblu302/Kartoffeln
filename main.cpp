@@ -3,7 +3,7 @@
 #include <vector>
 #include <sstream>
 #include <ctime>
-#include "Chess.h"
+#include "src/Chess.h"
 using namespace std;
 
 int main()

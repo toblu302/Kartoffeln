@@ -1,4 +1,5 @@
 #include "Chess.h"
+#include "PSQT.h"
 
 int64_t Chess::Evaluate() {
     return materialEvaluation() + positionEvaluation();
