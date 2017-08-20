@@ -135,6 +135,10 @@ Chess::Chess()
     KING_MOVES[63] = uint64_t(4665729213955833856);
 
 
+    //Calculate the possible sliding moves
+    // The "column" is the column of the moving piece for which you want to calculate moves
+    // The "occ" (occupancy) is a bitboard with the pieces which will block the moving piece
+    // SLIDING_MOVES[column][occ] is a bitboard with the positions to which the piece can move
     for(int column=0; column<8; ++column) {
         for(int occ=0; occ < 256; ++occ) {
 
