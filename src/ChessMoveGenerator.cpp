@@ -87,7 +87,7 @@ uint64_t Chess::getKingCastles(uint8_t king_position) {
 }
 
 uint64_t Chess::getSlidingMovesFromOccupancy(uint8_t column, uint8_t occupancy) {
-    uint64_t retValue = OCCUPANCY[column][occupancy];
+    uint64_t retValue = SLIDING_MOVES[column][occupancy];
     return retValue;
 }
 

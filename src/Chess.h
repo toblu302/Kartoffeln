@@ -80,7 +80,7 @@ class Chess
 
         uint64_t KNIGHT_MOVES[64];
         uint64_t KING_MOVES[64];
-        uint64_t OCCUPANCY[8][256];
+        uint64_t SLIDING_MOVES[8][256];
 
         // Helpful functions
         string bitToStringPosition(uint64_t bit); //Chess.cpp
