@@ -75,6 +75,8 @@ class Chess
         uint64_t getSlidingAlongDiagonalA8H1(uint8_t piece_position, uint64_t blockers);
 
         // Helpful constants
+        uint64_t FILE[8]; //column
+        uint64_t RANK[8]; //rank
         const uint64_t FILE_A = (uint64_t(1) | uint64_t(1) << 8 | uint64_t(1) << 16 | uint64_t(1) << 24 | uint64_t(1) << 32 | uint64_t(1) << 40 | uint64_t(1) << 48 | uint64_t(1) << 56);
         const uint64_t FILE_H = (uint64_t(1) << 7 | uint64_t(1) << 15 | uint64_t(1) << 23 | uint64_t(1) << 31 | uint64_t(1) << 39 | uint64_t(1) << 47 | uint64_t(1) << 55 | uint64_t(1) << 63);
 
