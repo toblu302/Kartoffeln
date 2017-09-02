@@ -5,7 +5,10 @@
 using namespace std;
 
 void Chess::printBoard() {
-    //Implement this
+    cout << "White:" << endl;
+    printBitBoard(this->board.color[WHITE]);
+    cout << "Black:" << endl;
+    printBitBoard(this->board.color[BLACK]);
 }
 
 void Chess::printBitBoard(uint64_t board) {
@@ -283,4 +286,85 @@ string Chess::moveToString(Move mv) {
             break;
     }
     return retstring;
+}
+
+Move Chess::stringToMove(string mv) {
+    Move return_move;
+    return_move.from_bitmove = stringToBitPosition(mv.substr(0,2));
+    return_move.to_bitmove = stringToBitPosition(mv.substr(2,2));
+
+    return_move.color = (turn == 'w') ? WHITE : BLACK;
+    return_move.move_type = QUIET;
+
+    bool capture = false;
+
+    //get the moving piece and, if applicable, the captured piece
+    for(int piece=0; piece<NUM_PIECES; ++piece) {
+        if( return_move.from_bitmove & this->board.pieces[piece] ) {
+            return_move.moving_piece = PIECE(piece);
+        }
+        if( return_move.to_bitmove & this->board.pieces[piece] ) {
+            return_move.captured_piece = PIECE(piece);
+            return_move.move_type = CAPTURE;
+            capture = true;
+        }
+    }
+
+    //handle promotions
+    if( mv.size() == 5 ) {
+        switch(mv[4]) {
+            case 'q':
+                return_move.move_type = PROMOTION_QUEEN;
+                if( capture ) {
+                    return_move.move_type = PROMOTION_QUEEN_CAPTURE;
+                }
+                break;
+            case 'r':
+                return_move.move_type = PROMOTION_ROOK;
+                if( capture ) {
+                    return_move.move_type = PROMOTION_ROOK_CAPTURE;
+                }
+                break;
+            case 'b':
+                return_move.move_type = PROMOTION_BISHOP;
+                if( capture ) {
+                    return_move.move_type = PROMOTION_BISHOP_CAPTURE;
+                }
+                break;
+            case 'n':
+                return_move.move_type = PROMOTION_KNIGHT;
+                if( capture ) {
+                    return_move.move_type = PROMOTION_KNIGHT_CAPTURE;
+                }
+                break;
+        }
+    }
+
+    //handle double pushes
+    else if ( (return_move.moving_piece == PAWN) &&
+               ( ((return_move.to_bitmove >> 16) == return_move.from_bitmove) ||
+                 ((return_move.to_bitmove << 16) == return_move.from_bitmove)) ) {
+        return_move.move_type = DOUBLE_PAWN;
+    }
+
+    //handle en passant captures
+    else if( (return_move.to_bitmove & board.EN_PASSANT_SQUARE) && (return_move.moving_piece == PAWN) ) {
+        return_move.move_type = EN_PASSANT_CAPTURE;
+    }
+
+    //handle castling
+    else if (return_move.moving_piece == KING) {
+        if( (return_move.to_bitmove >> 2) == return_move.from_bitmove ) {
+            return_move.move_type = CASTLING_KINGSIDE;
+        }
+        else if( (return_move.to_bitmove << 2) == return_move.from_bitmove ) {
+            return_move.move_type = CASTLING_QUEENSIDE;
+        }
+    }
+
+    if(return_move.move_type == QUIET && capture) {
+        return_move.move_type = CAPTURE;
+    }
+
+    return return_move;
 }

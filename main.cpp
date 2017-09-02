@@ -72,7 +72,9 @@ int main()
                     }
                     chess.setup(arg2);
                 }
-                break;
+                else if(currentToken == "moves") {
+                    state = "moves";
+                }
             }
             //If we're parsing a "go" command
             else if(state == "go") {
@@ -93,7 +95,11 @@ int main()
                     chess.depthLimit = atoi(nextToken.c_str());
                     break;
                 }
+            }
 
+            //if we're parsing a "moves" command
+            else if(state == "moves") {
+                chess.makeMove( chess.stringToMove(currentToken) );
             }
 
             //custom commands (independent of the state variable)
@@ -103,8 +109,8 @@ int main()
             }
 
             else if(currentToken == "move") {
-                //Move mv = stringToMove( mv );
-                //chess.makeMove( nextToken );
+                Move mv = chess.stringToMove( nextToken );
+                chess.makeMove(mv);
                 break;
             }
 

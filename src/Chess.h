@@ -36,6 +36,7 @@ class Chess
 
         // Search
         string moveToString(Move mv); //Chess.cpp
+        Move stringToMove(string mv); //Chess.cpp
         Move getBestMove(); //ChessSearch.cpp
         void getAllMoves(vector<Move> &moves); //ChessSearch.cpp
 
