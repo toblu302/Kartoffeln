@@ -12,8 +12,11 @@ int main()
     Chess chess;
     chess.setup();
 
+    bool quit = false;
     //main loop
-    while( getline(cin, line) ) {
+    while( !quit ) {
+        getline(cin, line);
+
         chess.UCIgetReady(); //reset some stuff to prepare for UCI
 
         //split the string into tokens
@@ -57,6 +60,11 @@ int main()
 
                 else if(currentToken == "go") {
                     state = "go";
+                }
+
+                else if(currentToken == "quit") {
+                    quit = true;
+                    break;
                 }
 
             }
