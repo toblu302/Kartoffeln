@@ -57,7 +57,6 @@ Chess::Chess()
     for(int column=0; column<8; ++column) {
         for(int occ=0; occ < 256; ++occ) {
 
-            uint8_t position = uint8_t(1) << column;
             uint8_t result = 0;
 
             //increasing

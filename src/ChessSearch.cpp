@@ -33,13 +33,13 @@ Move Chess::getBestMove() {
         //If the game has gone on for more than 75 moves, it will pretend that there is 50 moves left
         uint64_t movesLeft = 50;
         if( fullTimeMove < 75 ) {
-            uint64_t movesLeft = (75-fullTimeMove);
+            movesLeft = (75-fullTimeMove);
         }
         uint64_t timeLeft = movesLeft*inc + time;
         uint64_t timePerMove = timeLeft/movesLeft;
 
         //Set the depth limit depending on how much time we have per move
-        setTimer( timeLeft/movesLeft );
+        setTimer(timePerMove);
 
         //Iterative deepening
         depthLimit = 1;

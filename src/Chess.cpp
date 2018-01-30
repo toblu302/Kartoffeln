@@ -38,16 +38,16 @@ void Chess::PerftDivided(uint8_t depth)
     this->getAllMoves(moves);
 
     uint64_t totalNodes = 0;
-    for (int i = 0; i < moves.size(); i++) {
-        cout << moveToString(moves[i]) << ": ";
+    for (auto &move: moves) {
+        cout << moveToString(move) << ": ";
 
-        makeMove(moves[i]);
+        makeMove(move);
         uint64_t nodes = Perft(depth - 1);
         totalNodes += nodes;
         cout << nodes << endl;
         popMove();
     }
-    cout << "TOTAL NODES: " << totalNodes << endl;
+    cout << "TOTAL: " << totalNodes << endl;
 }
 
 uint64_t Chess::Perft(uint8_t depth)
@@ -59,8 +59,8 @@ uint64_t Chess::Perft(uint8_t depth)
 
     uint64_t nodes = 0;
 
-    for (int i = 0; i < moves.size(); i++) {
-        makeMove(moves[i]);
+    for (auto &move: moves) {
+        makeMove(move);
         nodes += Perft(depth - 1);
         popMove();
     }
@@ -218,8 +218,6 @@ string Chess::bitToStringPosition(uint64_t bit) {
 }
 
 string Chess::bitPositionToStringPosition(uint8_t bit) {
-    uint64_t x;
-
     uint8_t column = bit%8;
     uint8_t row = (bit-column)/8;
 
@@ -232,7 +230,7 @@ string Chess::bitPositionToStringPosition(uint8_t bit) {
 uint64_t Chess::stringToBitPosition(string position) {
     uint64_t x = position[0]-'a';
     uint64_t y = position[1]-'1';
-    return uint64_t(1) << (y*8)+x;
+    return uint64_t(1) << ((y*8)+x);
 }
 
 bool Chess::isChecking() {

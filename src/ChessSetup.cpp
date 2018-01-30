@@ -41,20 +41,20 @@ void Chess::setup(string fenString) {
     string boardString = tokens[0];
     int currentY = 7;
     int currentX = 0;
-    for(int i=0; i<boardString.size(); ++i)
+    for(char &character: boardString)
     {
-        if( boardString[i] >= '1' && boardString[i] <= '8')
+        if( character >= '1' && character <= '8')
         {
-            currentX += boardString[i]-'0';
+            currentX += character-'0';
         }
-        else if( boardString[i] == '/' )
+        else if( character == '/' )
         {
             currentY -= 1;
             currentX = 0;
         }
         else
         {
-            char piece = boardString[i];
+            char piece = character;
             uint64_t bit = uint64_t(1) << ((currentY*8)+currentX);
             switch( piece ) {
                 case 'P':
@@ -113,7 +113,7 @@ void Chess::setup(string fenString) {
 
     turn = tokens[1][0];
 
-    for(auto character: tokens[2]) {
+    for(auto &character: tokens[2]) {
         switch(character) {
             case 'K':
                 board.CASTLE_RIGHTS |= (1<<6);
