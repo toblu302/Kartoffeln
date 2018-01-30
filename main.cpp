@@ -98,6 +98,10 @@ int main()
                 else if(currentToken == "btime") {
                     chess.btime = atoi(nextToken.c_str());
                 }
+                else if(currentToken == "movetime") {
+                    chess.movetime = true;
+                    chess.movetime_ms = atoi(nextToken.c_str());
+                }
                 else if(currentToken == "depth") {
                     chess.depthOnly = true;
                     chess.depthLimit = atoi(nextToken.c_str());

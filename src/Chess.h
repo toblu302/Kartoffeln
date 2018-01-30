@@ -43,6 +43,9 @@ class Chess
         bool depthOnly; // to handle "go depth x"
         uint8_t depthLimit;
 
+	bool movetime; // to handle "go movetime"
+	uint64_t movetime_ms;
+
         uint32_t wtime; //time control variable
         uint32_t btime; //time control variable
         uint32_t binc; //time control variable

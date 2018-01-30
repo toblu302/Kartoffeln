@@ -41,6 +41,11 @@ Move Chess::getBestMove() {
         //Set the depth limit depending on how much time we have per move
         setTimer(timePerMove);
 
+        // handle "go movetime"
+        if( this->movetime ) {
+            setTimer(this->movetime_ms);
+        }
+
         //Iterative deepening
         depthLimit = 1;
         Move lastMove;
