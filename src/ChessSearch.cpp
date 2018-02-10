@@ -87,7 +87,13 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
     getAllMoves(candidates);
 
     if( candidates.size() == 0 ) {
-        return (turn == 'w') ? INT64_MIN+1 : INT64_MAX-1;
+        uint64_t retval = 0;
+        turn = ('w'+'b')-turn;
+        if( isChecking() ) {
+            retval = (turn == 'w') ? INT64_MAX-1 : INT64_MIN+1;
+        }
+        turn = ('w'+'b')-turn;
+        return retval;
     }
 
     int64_t bestScore = (turn == 'w') ? alpha : beta;

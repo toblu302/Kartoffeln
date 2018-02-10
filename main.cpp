@@ -13,6 +13,7 @@ int main()
     chess.setup();
 
     bool quit = false;
+
     //main loop
     while( !quit ) {
         getline(cin, line);
