@@ -18,6 +18,14 @@ bool Chess::hasTimeLeft() {
     return elapsed_time < allowedTime;
 }
 
+uint64_t getMoveTime(uint8_t fulltimeMove, uint64_t inc, uint64_t timeLeft) {
+    double factor = 0.025;
+    if( fulltimeMove < 19 ) {
+        factor = (fulltimeMove/19.0)*0.015+0.01;
+    }
+    return (factor*timeLeft) + inc/2.0;
+}
+
 Move Chess::getBestMove() {
     //if we're only doing depth, do a simple alpha-beta search
     if( depthOnly ) {
@@ -25,48 +33,38 @@ Move Chess::getBestMove() {
         alphaBetaSearch(INT64_MIN, INT64_MAX, depthLimit);
         return this->bestMove;
     }
-    else {
-        uint64_t inc = (turn=='w') ? winc : binc;
-        uint64_t time = (turn=='w') ? wtime : btime;
 
-        //Assume a game is 75 moves
-        //If the game has gone on for more than 75 moves, it will pretend that there is 50 moves left
-        uint64_t movesLeft = 50;
-        if( fullTimeMove < 75 ) {
-            movesLeft = (75-fullTimeMove);
-        }
-        uint64_t timeLeft = movesLeft*inc + time;
-        uint64_t timePerMove = timeLeft/movesLeft;
+    //set the timer
+    uint64_t inc = (turn=='w') ? winc : binc;
+    uint64_t time = (turn=='w') ? wtime : btime;
+    uint64_t timeForMove = getMoveTime(fullTimeMove, inc, time);
+    setTimer(timeForMove);
 
-        //Set the depth limit depending on how much time we have per move
-        setTimer(timePerMove);
-
-        // handle "go movetime"
-        if( this->movetime ) {
-            setTimer(this->movetime_ms);
-        }
-
-        //Iterative deepening
-        depthLimit = 1;
-        Move lastMove;
-        while( hasTimeLeft() ) {
-            alphaBetaSearch(INT64_MIN, INT64_MAX, depthLimit);
-
-            //If the search was interrupted, set the best move the the best move from the last search
-            if( searchInterrupted ) {
-                this->bestMove = lastMove;
-                break;
-            }
-
-            //send info using UCI
-            cout << "info depth " << int(this->depthLimit) << " pv " << moveToString(this->bestMove) << endl;
-
-
-            lastMove = bestMove;
-            depthLimit += 1;
-        }
-
+    // handle "go movetime"
+    if( this->movetime ) {
+        setTimer(this->movetime_ms);
     }
+
+    //Iterative deepening
+    depthLimit = 1;
+    Move lastMove;
+    while( hasTimeLeft() ) {
+        alphaBetaSearch(INT64_MIN, INT64_MAX, depthLimit);
+
+        //If the search was interrupted, set the best move the the best move from the last search
+        if( searchInterrupted ) {
+            this->bestMove = lastMove;
+            break;
+        }
+
+        //send info using UCI
+        cout << "info depth " << int(this->depthLimit) << " pv " << moveToString(this->bestMove) << endl;
+
+
+        lastMove = bestMove;
+        depthLimit += 1;
+    }
+
 
     return this->bestMove;
 }
