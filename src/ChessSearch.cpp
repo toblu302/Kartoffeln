@@ -48,7 +48,8 @@ Move Chess::getBestMove() {
     //Iterative deepening
     depthLimit = 1;
     Move lastMove;
-    while( hasTimeLeft() ) {
+    while( !searchInterrupted && hasTimeLeft() ) {
+        timeToCheckTime=30;
         alphaBetaSearch(INT64_MIN, INT64_MAX, depthLimit);
 
         //If the search was interrupted, set the best move the the best move from the last search
@@ -71,10 +72,17 @@ Move Chess::getBestMove() {
 
 
 int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
-
-    if( !hasTimeLeft() ) {
-        this->searchInterrupted = true;
+    // check if we have enough time left, and interrupt if we don't
+    if( searchInterrupted ) {
         return 0;
+    }
+    --timeToCheckTime;
+    if( timeToCheckTime == 0 ) {
+        timeToCheckTime = 30;
+        if( !hasTimeLeft() ) {
+            searchInterrupted = true;
+            return 0;
+        }
     }
 
     if( depth == 0 ) {
@@ -84,6 +92,7 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
     vector< Move > candidates;
     getAllMoves(candidates);
 
+    // Check for mates/stalemates
     if( candidates.size() == 0 ) {
         uint64_t retval = 0;
         turn = ('w'+'b')-turn;

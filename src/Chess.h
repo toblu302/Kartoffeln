@@ -102,6 +102,7 @@ class Chess
         clock_t startTime; //the start of the timer
 
         bool searchInterrupted;
+        uint32_t timeToCheckTime;
         int64_t alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth); //ChessSearch.cpp
         Move bestMove; //Stores the result of bestMoveSearch
 
