@@ -3,25 +3,25 @@
 #include <limits.h>
 #include "Chess.h"
 #include <stdlib.h>
-#include <time.h>
+#include <chrono>
 
 using namespace std;
+using namespace std::chrono;
 
 void Chess::setTimer(uint64_t time_ms) {
-    this->allowedTime = time_ms;
-    this->startTime = clock();
+    allowedTime = milliseconds(time_ms);
+    startTime = steady_clock::now();
 }
 
 bool Chess::hasTimeLeft() {
-    clock_t currentTime = clock();
-    uint64_t elapsed_time = uint64_t( (double(currentTime - this->startTime) / CLOCKS_PER_SEC)*1000 );
+    milliseconds elapsed_time = duration_cast<milliseconds>( steady_clock::now() - startTime );
     return elapsed_time < allowedTime;
 }
 
 uint64_t getMoveTime(uint8_t fulltimeMove, uint64_t inc, uint64_t timeLeft) {
     double factor = 0.025;
     if( fulltimeMove < 19 ) {
-        factor = (fulltimeMove/19.0)*0.015+0.01;
+        factor = (fulltimeMove/19.0)*0.01+0.015;
     }
     return (factor*timeLeft) + inc/2.0;
 }

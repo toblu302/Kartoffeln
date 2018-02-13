@@ -5,13 +5,14 @@
 #include <vector>
 #include <stack>
 #include <array>
-#include <ctime>
 #include <stdint.h>
+#include <chrono>
 
 #include "Move.h"
 #include "Board.h"
 
 using namespace std;
+using namespace std::chrono;
 
 class Chess
 {
@@ -98,8 +99,8 @@ class Chess
         //Search
         void setTimer(uint64_t time_ms); //ChessSearch.cpp
         bool hasTimeLeft(); //ChessSearch.cpp
-        uint64_t allowedTime; //the amount of time for which the search is allowed to run
-        clock_t startTime; //the start of the timer
+        milliseconds allowedTime; //the amount of time for which the search is allowed to run
+        time_point<steady_clock> startTime; //the start of the timer
 
         bool searchInterrupted;
         uint32_t timeToCheckTime;
