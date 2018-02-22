@@ -2,8 +2,7 @@
 #define MOVE_H_INCLUDED
 
 #include <stdint.h>
-
-#include "Board.h"
+#include "Definitions.h"
 
 enum MOVETYPE {
     QUIET, CAPTURE, EN_PASSANT_CAPTURE,
@@ -30,5 +29,6 @@ struct Move {
     uint64_t previous_en_passant_square;
     uint64_t previous_castling_rights;
 };
+typedef struct Move Move;
 
 #endif // MOVE_H_INCLUDED

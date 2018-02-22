@@ -2,16 +2,8 @@
 #define BOARD_H_INCLUDED
 
 #include <stdint.h>
-
-#define NUM_PIECES 6
-enum PIECE {
-    PAWN=0, ROOK=1, KNIGHT=2, BISHOP=3, QUEEN=4, KING=5
-};
-
-#define NUM_COLORS 2
-enum COLOR {
-    WHITE=0, BLACK=1
-};
+#include "Move.h"
+#include "Definitions.h"
 
 struct Board {
     uint64_t pieces[NUM_PIECES];
@@ -22,6 +14,10 @@ struct Board {
 
     uint32_t halftimeMove;
     COLOR side;
+
+    //methods
+    void makeMove(const Move& mv);
+    void unmakeMove(const Move& mv);
 };
 typedef struct Board Board;
 

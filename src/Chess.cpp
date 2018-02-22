@@ -40,11 +40,11 @@ void Chess::PerftDivided(uint8_t depth)
     uint64_t totalNodes = 0;
     for (auto &move: moves) {
         cout << moveToString(move) << ": ";
-        makeMove(move);
+        board.makeMove(move);
         uint64_t nodes = Perft(depth - 1);
         totalNodes += nodes;
         cout << nodes << endl;
-        unmakeMove(move);
+        board.unmakeMove(move);
     }
     cout << "TOTAL: " << totalNodes << endl;
 }
@@ -59,221 +59,11 @@ uint64_t Chess::Perft(uint8_t depth)
     uint64_t nodes = 0;
 
     for (auto &move: moves) {
-        makeMove(move);
+        board.makeMove(move);
         nodes += Perft(depth - 1);
-        unmakeMove(move);
+        board.unmakeMove(move);
     }
     return nodes;
-}
-
-bool Chess::isValid(Move mv) {
-    makeMove( mv );
-    bool retValue = (isChecking() == false);
-    unmakeMove( mv );
-    return retValue;
-}
-
-void Chess::makeMove(Move mv) {
-    //Regardless of movetype, a piece will always move from one square to another
-    //This thus deals with quiet moves, which is why they are not included in the switch
-    board.pieces[ mv.moving_piece ] ^= mv.from_bitmove | mv.to_bitmove;
-    board.color[ mv.color ] ^= mv.from_bitmove | mv.to_bitmove;
-
-    COLOR opposite_color = (mv.color == WHITE) ? BLACK : WHITE;
-
-    //store the current en passant square and then reset it
-    uint64_t en_passant_target = board.EN_PASSANT_SQUARE >> 8;
-
-    if( board.side == BLACK ) {
-        en_passant_target = board.EN_PASSANT_SQUARE << 8;
-    }
-    board.EN_PASSANT_SQUARE = 0;
-
-    //change castling rights, if needed
-    if( mv.moving_piece == KING && board.side == WHITE ) {
-        board.CASTLE_RIGHTS &= ~(0xFF);
-    }
-    if( mv.moving_piece == KING && board.side == BLACK ) {
-        board.CASTLE_RIGHTS &= ~( uint64_t(0xFF) << 56 );
-    }
-    if( (mv.from_bitmove|mv.to_bitmove) & (1<<7) )  {
-        board.CASTLE_RIGHTS &= ~(1<<6);
-    }
-    if( (mv.from_bitmove|mv.to_bitmove) & 1 )  {
-        board.CASTLE_RIGHTS &= ~(1<<2);
-    }
-    if( (mv.from_bitmove|mv.to_bitmove) & (uint64_t(1)<<56) )  {
-        board.CASTLE_RIGHTS &= ~(uint64_t(1)<<58);
-    }
-    if( (mv.from_bitmove|mv.to_bitmove) & (uint64_t(1)<<63) )  {
-        board.CASTLE_RIGHTS &= ~(uint64_t(1)<<62);
-    }
-
-
-    switch( mv.move_type ) {
-        case CAPTURE:
-            board.pieces[ mv.captured_piece ] ^= mv.to_bitmove;
-            board.color[ opposite_color ] ^= mv.to_bitmove;
-            break;
-
-        case EN_PASSANT_CAPTURE:
-            board.pieces[ PAWN ] ^= en_passant_target;
-            board.color[ opposite_color ] ^= en_passant_target;
-            break;
-
-        //set the en passant sqaure if we made a double push with pawn
-        case DOUBLE_PAWN:
-            if( board.side == WHITE ) {
-                board.EN_PASSANT_SQUARE = mv.to_bitmove >> 8;
-            }
-            else {
-                board.EN_PASSANT_SQUARE = mv.to_bitmove << 8;
-            }
-            break;
-
-        //castling
-        case CASTLING_KINGSIDE:
-            board.pieces[ ROOK ] ^= (uint64_t(mv.from_bitmove) << 3) | (uint64_t(mv.from_bitmove) << 1);
-            board.color[ mv.color ] ^= (uint64_t(mv.from_bitmove) << 3) | (uint64_t(mv.from_bitmove) << 1);
-            break;
-
-        case CASTLING_QUEENSIDE:
-            board.pieces[ ROOK ] ^= (uint64_t(mv.from_bitmove) >> 4) | (uint64_t(mv.from_bitmove) >> 1);
-            board.color[ mv.color ] ^= (uint64_t(mv.from_bitmove) >> 4) | (uint64_t(mv.from_bitmove) >> 1);
-            break;
-
-        //promotions
-        case PROMOTION_KNIGHT_CAPTURE:
-            board.pieces[ mv.captured_piece ] ^= mv.to_bitmove;
-            board.color[ opposite_color ] ^= mv.to_bitmove;
-        case PROMOTION_KNIGHT:
-            board.pieces[ PAWN ] ^= mv.to_bitmove;
-            board.pieces[ KNIGHT ] ^= mv.to_bitmove;
-            break;
-
-        case PROMOTION_QUEEN_CAPTURE:
-            board.pieces[ mv.captured_piece ] ^= mv.to_bitmove;
-            board.color[ opposite_color ] ^= mv.to_bitmove;
-        case PROMOTION_QUEEN:
-            board.pieces[ PAWN ] ^= mv.to_bitmove;
-            board.pieces[ QUEEN ] ^= mv.to_bitmove;
-            break;
-
-        case PROMOTION_ROOK_CAPTURE:
-            board.pieces[ mv.captured_piece ] ^= mv.to_bitmove;
-            board.color[ opposite_color ] ^= mv.to_bitmove;
-        case PROMOTION_ROOK:
-            board.pieces[ PAWN ] ^= mv.to_bitmove;
-            board.pieces[ ROOK ] ^= mv.to_bitmove;
-            break;
-
-        case PROMOTION_BISHOP_CAPTURE:
-            board.pieces[ mv.captured_piece ] ^= mv.to_bitmove;
-            board.color[ opposite_color ] ^= mv.to_bitmove;
-        case PROMOTION_BISHOP:
-            board.pieces[ PAWN ] ^= mv.to_bitmove;
-            board.pieces[ BISHOP ] ^= mv.to_bitmove;
-            break;
-
-        default:
-            break;
-    }
-
-    if( board.side == WHITE ) {
-        board.side = BLACK;
-    }
-    else {
-        board.side = WHITE;
-    }
-    board.halftimeMove += 1;
-}
-
-void Chess::unmakeMove(Move mv) {
-
-    board.EN_PASSANT_SQUARE = mv.previous_en_passant_square;
-    board.CASTLE_RIGHTS = mv.previous_castling_rights;
-
-    uint64_t en_passant_target = board.EN_PASSANT_SQUARE >> 8;
-    if( mv.color == BLACK ) {
-        en_passant_target = board.EN_PASSANT_SQUARE << 8;
-    }
-
-    //Regardless of movetype, a piece will always move from one square to another
-    //This thus deals with quiet moves, which is why they are not included in the switch
-    board.pieces[ mv.moving_piece ] ^= mv.from_bitmove | mv.to_bitmove;
-    board.color[ mv.color ] ^= mv.from_bitmove | mv.to_bitmove;
-
-    COLOR opposite_color = (mv.color == WHITE) ? BLACK : WHITE;
-
-    switch( mv.move_type ) {
-        case CAPTURE:
-            board.pieces[ mv.captured_piece ] ^= mv.to_bitmove;
-            board.color[ opposite_color ] ^= mv.to_bitmove;
-            break;
-
-        case EN_PASSANT_CAPTURE:
-            board.pieces[ PAWN ] ^= en_passant_target;
-            board.color[ opposite_color ] ^= en_passant_target;
-            break;
-
-        case DOUBLE_PAWN:
-            break;
-
-        //castling
-        case CASTLING_KINGSIDE:
-            board.pieces[ ROOK ] ^= (uint64_t(mv.from_bitmove) << 3) | (uint64_t(mv.from_bitmove) << 1);
-            board.color[ mv.color ] ^= (uint64_t(mv.from_bitmove) << 3) | (uint64_t(mv.from_bitmove) << 1);
-            break;
-
-        case CASTLING_QUEENSIDE:
-            board.pieces[ ROOK ] ^= (uint64_t(mv.from_bitmove) >> 4) | (uint64_t(mv.from_bitmove) >> 1);
-            board.color[ mv.color ] ^= (uint64_t(mv.from_bitmove) >> 4) | (uint64_t(mv.from_bitmove) >> 1);
-            break;
-
-        //promotions
-        case PROMOTION_KNIGHT_CAPTURE:
-            board.pieces[ mv.captured_piece ] ^= mv.to_bitmove;
-            board.color[ opposite_color ] ^= mv.to_bitmove;
-        case PROMOTION_KNIGHT:
-            board.pieces[ PAWN ] ^= mv.to_bitmove;
-            board.pieces[ KNIGHT ] ^= mv.to_bitmove;
-            break;
-
-        case PROMOTION_QUEEN_CAPTURE:
-            board.pieces[ mv.captured_piece ] ^= mv.to_bitmove;
-            board.color[ opposite_color ] ^= mv.to_bitmove;
-        case PROMOTION_QUEEN:
-            board.pieces[ PAWN ] ^= mv.to_bitmove;
-            board.pieces[ QUEEN ] ^= mv.to_bitmove;
-            break;
-
-        case PROMOTION_ROOK_CAPTURE:
-            board.pieces[ mv.captured_piece ] ^= mv.to_bitmove;
-            board.color[ opposite_color ] ^= mv.to_bitmove;
-        case PROMOTION_ROOK:
-            board.pieces[ PAWN ] ^= mv.to_bitmove;
-            board.pieces[ ROOK ] ^= mv.to_bitmove;
-            break;
-
-        case PROMOTION_BISHOP_CAPTURE:
-            board.pieces[ mv.captured_piece ] ^= mv.to_bitmove;
-            board.color[ opposite_color ] ^= mv.to_bitmove;
-        case PROMOTION_BISHOP:
-            board.pieces[ PAWN ] ^= mv.to_bitmove;
-            board.pieces[ BISHOP ] ^= mv.to_bitmove;
-            break;
-
-        default:
-            break;
-    }
-
-    if( board.side == WHITE ) {
-        board.side = BLACK;
-    }
-    else {
-        board.side = WHITE;
-    }
-    board.halftimeMove -= 1;
 }
 
 //converting a bitboard with a single bit to a position on the board as a string
@@ -309,6 +99,13 @@ uint64_t Chess::stringToBitPosition(string position) {
     uint64_t x = position[0]-'a';
     uint64_t y = position[1]-'1';
     return uint64_t(1) << ((y*8)+x);
+}
+
+bool Chess::isValid(Move mv) {
+    board.makeMove( mv );
+    bool retValue = (isChecking() == false);
+    board.unmakeMove( mv );
+    return retValue;
 }
 
 bool Chess::isChecking() {

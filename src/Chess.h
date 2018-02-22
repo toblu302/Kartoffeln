@@ -34,7 +34,6 @@ class Chess
         uint64_t Perft(uint8_t depth); //Chess.cpp
         void PerftDivided(uint8_t depth); //Chess.cpp
 
-
         // Search
         string moveToString(Move mv); //Chess.cpp
         Move stringToMove(string mv); //Chess.cpp
@@ -54,10 +53,9 @@ class Chess
 
         uint32_t fullTimeMove; //current move
 
-    private:
-        //Board representation
-        Board board;
+        Board board; //Board representation
 
+    private:
         //Move generators (ChessMoveGenerator.cpp)
         uint64_t getWhitePawnAttackMoves(uint64_t WHITE_PAWNS);
         uint64_t getWhitePawnMoves(uint64_t PAWNS);

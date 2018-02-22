@@ -109,9 +109,9 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
     for(uint32_t i=0; i<candidates.size(); ++i) {
 
         if(board.side==WHITE) {
-            makeMove( candidates[i] );
+            board.makeMove( candidates[i] );
             int64_t score = alphaBetaSearch(bestScore, beta, depth-1);
-            unmakeMove( candidates[i] );
+            board.unmakeMove( candidates[i] );
 
             if( score > bestScore ) {
                 bestScore = score;
@@ -123,9 +123,9 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
         }
 
         else if(board.side==BLACK) {
-            makeMove( candidates[i] );
+            board.makeMove( candidates[i] );
             int64_t score = alphaBetaSearch(alpha, bestScore, depth-1);
-            unmakeMove( candidates[i] );
+            board.unmakeMove( candidates[i] );
 
             if( score < bestScore ) {
                 bestScore = score;
@@ -143,6 +143,24 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
     }
 
     return bestScore;
+}
+
+uint64_t get_next_bit(uint64_t &bitfield) {
+    if( bitfield == 0 ) {
+        return 0;
+    }
+    uint64_t s = (uint64_t(1) << (__builtin_ffsll(bitfield)-1));
+    bitfield &= ~s;
+    return s;
+}
+
+uint8_t get_next_value(uint64_t &bitfield) {
+    if( bitfield == 0 ) {
+        return 0;
+    }
+    uint8_t retval = __builtin_ffsll(bitfield)-1;
+    bitfield &= ~(uint64_t(1) << retval);
+    return retval;
 }
 
 void Chess::getAllMoves(vector<Move> &moves) {

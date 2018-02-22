@@ -112,7 +112,7 @@ int main()
 
             //if we're parsing a "moves" command
             else if(state == "moves") {
-                chess.makeMove( chess.stringToMove(currentToken) );
+                chess.board.makeMove( chess.stringToMove(currentToken) );
             }
 
             //custom commands (independent of the state variable)
@@ -123,7 +123,7 @@ int main()
 
             else if(currentToken == "move") {
                 Move mv = chess.stringToMove( nextToken );
-                chess.makeMove(mv);
+                chess.board.makeMove(mv);
                 break;
             }
 
