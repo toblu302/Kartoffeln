@@ -30,7 +30,7 @@ class Chess
 
         // Moves
         void makeMove(Move mv); //Chess.cpp
-        void popMove(); //Chess.cpp
+        void unmakeMove(Move mv);
         uint64_t Perft(uint8_t depth); //Chess.cpp
         void PerftDivided(uint8_t depth); //Chess.cpp
 
@@ -56,9 +56,7 @@ class Chess
 
     private:
         //Board representation
-        char turn;
         Board board;
-        stack< Board > boardStateStack;
 
         //Move generators (ChessMoveGenerator.cpp)
         uint64_t getWhitePawnAttackMoves(uint64_t WHITE_PAWNS);

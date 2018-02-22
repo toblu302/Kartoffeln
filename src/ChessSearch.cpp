@@ -35,8 +35,8 @@ Move Chess::getBestMove() {
     }
 
     //set the timer
-    uint64_t inc = (turn=='w') ? winc : binc;
-    uint64_t time = (turn=='w') ? wtime : btime;
+    uint64_t inc = (board.side==WHITE) ? winc : binc;
+    uint64_t time = (board.side==WHITE) ? wtime : btime;
     uint64_t timeForMove = getMoveTime(fullTimeMove, inc, time);
     setTimer(timeForMove);
 
@@ -95,23 +95,23 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
     // Check for mates/stalemates
     if( candidates.size() == 0 ) {
         uint64_t retval = 0;
-        turn = ('w'+'b')-turn;
+        //turn = ('w'+'b')-turn;
         if( isChecking() ) {
-            retval = (turn == 'w') ? INT64_MAX-1 : INT64_MIN+1;
+            retval = (board.side==WHITE) ? INT64_MAX-1 : INT64_MIN+1;
         }
-        turn = ('w'+'b')-turn;
+        //turn = ('w'+'b')-turn;
         return retval;
     }
 
-    int64_t bestScore = (turn == 'w') ? alpha : beta;
+    int64_t bestScore = (board.side==WHITE) ? alpha : beta;
     Move bestMove;
 
     for(uint32_t i=0; i<candidates.size(); ++i) {
 
-        if( turn=='w' ) {
+        if(board.side==WHITE) {
             makeMove( candidates[i] );
             int64_t score = alphaBetaSearch(bestScore, beta, depth-1);
-            popMove();
+            unmakeMove( candidates[i] );
 
             if( score > bestScore ) {
                 bestScore = score;
@@ -122,10 +122,10 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
             }
         }
 
-        else if( turn=='b' ) {
+        else if(board.side==BLACK) {
             makeMove( candidates[i] );
             int64_t score = alphaBetaSearch(alpha, bestScore, depth-1);
-            popMove();
+            unmakeMove( candidates[i] );
 
             if( score < bestScore ) {
                 bestScore = score;
@@ -145,32 +145,27 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
     return bestScore;
 }
 
-
 void Chess::getAllMoves(vector<Move> &moves) {
 
-    uint64_t blockers = 0;
-    if( turn == 'w' ) {
-        blockers = board.color[WHITE];
-    }
-    else {
-        blockers = board.color[BLACK];
-    }
+    uint64_t blockers = board.color[board.side];
 
     Move mv;
-    mv.color = (turn == 'w') ? WHITE : BLACK;
+    mv.color = board.side;
+    mv.previous_castling_rights = board.CASTLE_RIGHTS;
+    mv.previous_en_passant_square = board.EN_PASSANT_SQUARE;
 
     //iterate over all positions on the board
     for(int x=0; x<64; ++x) {
         uint64_t shifted = uint64_t(1) << x;
         uint64_t bitMoves = 0;
 
-        if( turn == 'w' && (board.pieces[PAWN] & shifted & board.color[WHITE]) ) {
+        if( (board.side==WHITE) && (board.pieces[PAWN] & shifted & board.color[WHITE]) ) {
             bitMoves = getWhitePawnMoves( shifted );
 
             mv.moving_piece = PAWN;
             mv.from_bitmove = shifted;
         }
-        else if( turn == 'b' && (board.pieces[PAWN] & shifted & board.color[BLACK]) ) {
+        else if( (board.side==BLACK) && (board.pieces[PAWN] & shifted & board.color[BLACK]) ) {
             bitMoves = getBlackPawnMoves( shifted );
 
             mv.moving_piece = PAWN;
@@ -226,8 +221,8 @@ void Chess::getAllMoves(vector<Move> &moves) {
             mv.move_type = QUIET;
 
             //handle captures
-            if ( (turn == 'b' && (mv.to_bitmove & board.color[WHITE])) ||
-                 (turn == 'w' && (mv.to_bitmove & board.color[BLACK])) ) {
+            if ( ((board.side==BLACK) && (mv.to_bitmove & board.color[WHITE])) ||
+                 ((board.side==WHITE) && (mv.to_bitmove & board.color[BLACK])) ) {
 
                 mv.move_type = CAPTURE;
 

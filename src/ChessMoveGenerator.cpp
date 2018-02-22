@@ -1,5 +1,6 @@
 #include "Chess.h"
 #include <iostream>
+
 uint64_t Chess::getWhitePawnAttackMoves(uint64_t WHITE_PAWNS) {
     uint64_t bitwiseMove = ((WHITE_PAWNS & ~FILE_A ) << 7); //attacking forward left
     bitwiseMove |= ((WHITE_PAWNS & ~FILE_H ) << 9); //attacking forward right
@@ -55,7 +56,7 @@ uint64_t Chess::getKingCastles(uint8_t king_position) {
     uint64_t blockers = board.color[WHITE] | board.color[BLACK];
     uint64_t castle_rights = 0;
 
-    if( turn == 'w' ) {
+    if(board.side == WHITE) {
         attackingMoves = getBlackAttacking();
         castle_rights = board.CASTLE_RIGHTS;
     }

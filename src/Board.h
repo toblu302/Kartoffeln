@@ -19,6 +19,10 @@ struct Board {
 
     uint64_t EN_PASSANT_SQUARE;
     uint64_t CASTLE_RIGHTS;
+
+    uint32_t halftimeMove;
+    COLOR side;
 };
+typedef struct Board Board;
 
 #endif // BOARD_H_INCLUDED

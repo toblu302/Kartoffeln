@@ -111,7 +111,12 @@ void Chess::setup(string fenString) {
         }
     }
 
-    turn = tokens[1][0];
+    if( tokens[1][0] == 'w' ) {
+        board.side = WHITE;
+    }
+    else {
+        board.side = BLACK;
+    }
 
     for(auto &character: tokens[2]) {
         switch(character) {

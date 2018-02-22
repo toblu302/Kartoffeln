@@ -25,6 +25,10 @@ struct Move {
 
     //captures
     PIECE captured_piece;
+
+    //history
+    uint64_t previous_en_passant_square;
+    uint64_t previous_castling_rights;
 };
 
 #endif // MOVE_H_INCLUDED
