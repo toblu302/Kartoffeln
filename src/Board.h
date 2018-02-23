@@ -18,6 +18,8 @@ struct Board {
     //methods
     void makeMove(const Move& mv);
     void unmakeMove(const Move& mv);
+    bool isValid(const Move& mv);
+    bool isChecking();
 };
 typedef struct Board Board;
 

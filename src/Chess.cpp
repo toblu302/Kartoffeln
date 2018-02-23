@@ -5,10 +5,11 @@
 using namespace std;
 
 void Chess::printBoard() {
-    cout << "White:" << endl;
+    cout << "White:" << board.color[WHITE] << endl;
     printBitBoard(this->board.color[WHITE]);
-    cout << "Black:" << endl;
+    cout << "Black:" << board.color[BLACK] << endl;
     printBitBoard(this->board.color[BLACK]);
+    cout << "Current side: " << board.side << endl;
 }
 
 void Chess::printBitBoard(uint64_t board) {
@@ -99,40 +100,6 @@ uint64_t Chess::stringToBitPosition(string position) {
     uint64_t x = position[0]-'a';
     uint64_t y = position[1]-'1';
     return uint64_t(1) << ((y*8)+x);
-}
-
-bool Chess::isValid(Move mv) {
-    board.makeMove( mv );
-    bool retValue = (isChecking() == false);
-    board.unmakeMove( mv );
-    return retValue;
-}
-
-bool Chess::isChecking() {
-    uint64_t this_side_pieces = (board.side == WHITE) ? board.color[WHITE] : board.color[BLACK];
-
-    uint64_t blockers = (board.side == WHITE) ? board.color[BLACK] : board.color[WHITE]; //get the other players pieces
-    uint32_t king_position = __builtin_ffsll( board.pieces[KING] & blockers )-1; //get the other players king
-
-    uint64_t diagonal_sliders = getSlidingAlongDiagonalA1H8(king_position, blockers) | getSlidingAlongDiagonalA8H1(king_position, blockers);
-    uint64_t vertical_sliders = getSlidingAlongFile(king_position, blockers) | getSlidingAlongRank(king_position, blockers);
-
-    uint64_t bitMoves = uint64_t(0);
-    bitMoves |= getKnightMoves(king_position, 0) & board.pieces[KNIGHT];
-    bitMoves |= getKingMoves(king_position, blockers) & board.pieces[KING];
-    bitMoves |= diagonal_sliders & board.pieces[BISHOP];
-    bitMoves |= diagonal_sliders & board.pieces[QUEEN];
-    bitMoves |= vertical_sliders & board.pieces[ROOK];
-    bitMoves |= vertical_sliders & board.pieces[QUEEN];
-
-    if(board.side == WHITE) {
-        bitMoves |= getBlackPawnAttackMoves( uint64_t(1) << king_position ) & board.pieces[PAWN];
-    }
-    else {
-        bitMoves |= getWhitePawnAttackMoves( uint64_t(1) << king_position ) & board.pieces[PAWN];
-    }
-
-    return (bitMoves & this_side_pieces) != 0;
 }
 
 string Chess::moveToString(Move mv) {
