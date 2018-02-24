@@ -16,35 +16,38 @@ class MoveGenerator {
         bool isChecking(Board& board);
 
     private:
-        uint64_t getPiecesOfColor(const Board& board, const COLOR& color, const PIECE& piece);
-
-        void handle_piece(Board& board, vector<Move> &moves, PIECE piece, uint64_t (MoveGenerator::*get_moves)(const Board& board, uint8_t position) );
-
-        uint64_t getWhitePawnAttackMoves(const Board &board, uint8_t position);
-        uint64_t getWhitePawnMoves(const Board &board, uint8_t position);
-        uint64_t getBlackPawnAttackMoves(const Board &board, uint8_t position);
-        uint64_t getBlackPawnMoves(const Board &board, uint8_t position);
-
-        uint64_t getKnightMoves(const Board& board, uint8_t knight_position);
-        uint64_t getKingMoves(const Board& board, uint8_t king_position);
-        uint64_t getBishopMoves(const Board& board, uint8_t bishop_position);
-        uint64_t getRookMoves(const Board& board, uint8_t rook_position);
-        uint64_t getQueenMoves(const Board& board, uint8_t queen_position);
-
-
+        void handle_piece(Board& board, vector<Move> &moves, PIECE piece, uint64_t (MoveGenerator::*get_moves)(const Board& board, const uint8_t &position) );
         void handle_pawn_moves(Board& board, Move& mv, vector<Move>& moves);
 
-        uint64_t getKingCastles(const Board& board, uint8_t king_position);
+        // Bitboard operations: they return a 64-bit integer in which a bit is set if the piece on position can move there
+        uint64_t getWhitePawnAttackMoves(const Board& board, const uint8_t& position);
+        uint64_t getWhitePawnMoves(const Board& board, const uint8_t& position);
+        uint64_t getBlackPawnAttackMoves(const Board& board, const uint8_t& position);
+        uint64_t getBlackPawnMoves(const Board& board, const uint8_t& position);
 
+        uint64_t getKnightMoves(const Board& board, const uint8_t& knight_position);
+        uint64_t getBishopMoves(const Board& board, const uint8_t& bishop_position);
+        uint64_t getRookMoves(const Board& board, const uint8_t& rook_position);
+        uint64_t getQueenMoves(const Board& board, const uint8_t& queen_position);
+
+        uint64_t getKingMoves(const Board& board, const uint8_t& king_position);
+        uint64_t getKingCastles(const Board& board, const uint8_t& king_position);
+
+        // Bitboard operations for sliding pieces
+        uint64_t getSlidingMovesFromOccupancy(const Board& board, const uint8_t& column, const uint8_t& occupancy);
+        uint64_t getSlidingAlongRank(const Board& board, const uint8_t& piece_position, const uint64_t& blockers);
+        uint64_t getSlidingAlongFile(const Board& board, const uint8_t& piece_position, const uint64_t& blockers);
+        uint64_t getSlidingAlongDiagonalA1H8(const Board& board, const uint8_t& piece_position, const uint64_t& blockers);
+        uint64_t getSlidingAlongDiagonalA8H1(const Board& board, const uint8_t& piece_position, const uint64_t& blockers);
+
+
+        // Helpful methods
         uint64_t getWhiteAttacking(const Board& board);
         uint64_t getBlackAttacking(const Board& board);
 
-        uint64_t getSlidingMovesFromOccupancy(const Board& board, uint8_t column, uint8_t occupancy);
-        uint64_t getSlidingAlongRank(const Board& board, uint8_t piece_position, uint64_t blockers);
-        uint64_t getSlidingAlongFile(const Board& board, uint8_t piece_position, uint64_t blockers);
-
-        uint64_t getSlidingAlongDiagonalA1H8(const Board& board, uint8_t piece_position, uint64_t blockers);
-        uint64_t getSlidingAlongDiagonalA8H1(const Board& board, uint8_t piece_position, uint64_t blockers);
+        uint64_t get_next_bitboard(uint64_t &bitfield);
+        uint8_t get_next_value(uint64_t &bitfield);
+        bool isCapture(const Board& board, const Move& mv);
 
         // Helpful constants
         uint64_t FILE[8]; //column

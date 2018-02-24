@@ -204,3 +204,8 @@ void Board::unmakeMove(const Move& mv) {
     }
     halftimeMove -= 1;
 }
+
+
+uint64_t Board::getPiecesOfColor(const COLOR& color, const PIECE& piece) {
+    return this->color[color] & this->pieces[piece];
+}
