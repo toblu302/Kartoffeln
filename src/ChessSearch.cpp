@@ -27,11 +27,14 @@ uint64_t getMoveTime(uint8_t fulltimeMove, uint64_t inc, uint64_t timeLeft) {
 }
 
 Move Chess::getBestMove() {
+    pv.clear();
+
     //if we're only doing depth, do a simple alpha-beta search
     if( depthOnly ) {
         setTimer( -1 );
-        alphaBetaSearch(INT64_MIN, INT64_MAX, depthLimit);
-        return this->bestMove;
+        timeToCheckTime=-1;
+        alphaBetaSearch(INT64_MIN, INT64_MAX, depthLimit, pv);
+        return pv[0];
     }
 
     //set the timer
@@ -47,31 +50,34 @@ Move Chess::getBestMove() {
 
     //Iterative deepening
     depthLimit = 1;
-    Move lastMove;
+    vector<Move> temp_pv;
     while( !searchInterrupted && hasTimeLeft() ) {
         timeToCheckTime=30;
-        alphaBetaSearch(INT64_MIN, INT64_MAX, depthLimit);
+        alphaBetaSearch(INT64_MIN, INT64_MAX, depthLimit, temp_pv);
 
         //If the search was interrupted, set the best move the the best move from the last search
         if( searchInterrupted ) {
-            this->bestMove = lastMove;
             break;
         }
 
         //send info using UCI
-        cout << "info depth " << int(this->depthLimit) << " pv " << moveToString(this->bestMove) << endl;
+        pv.clear();
+        cout << "info depth " << int(this->depthLimit) << " pv ";
+        for(auto &mv: temp_pv) {
+            cout << moveToString(mv) << " ";
+            pv.push_back(mv);
+        }
+        cout << endl;
 
-
-        lastMove = bestMove;
         depthLimit += 1;
     }
 
 
-    return this->bestMove;
+    return pv[0];
 }
 
 
-int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
+int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth, vector<Move>& this_level_pv) {
     // check if we have enough time left, and interrupt if we don't
     if( searchInterrupted ) {
         return 0;
@@ -104,18 +110,21 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
     }
 
     int64_t bestScore = (board.side==WHITE) ? alpha : beta;
-    Move bestMove;
+    vector<Move> next_level_pv;
 
     for(uint32_t i=0; i<candidates.size(); ++i) {
+        next_level_pv.clear();
 
         if(board.side==WHITE) {
             board.makeMove( candidates[i] );
-            int64_t score = alphaBetaSearch(bestScore, beta, depth-1);
+            int64_t score = alphaBetaSearch(bestScore, beta, depth-1, next_level_pv);
             board.unmakeMove( candidates[i] );
 
             if( score > bestScore ) {
                 bestScore = score;
-                bestMove = candidates[i];
+                this_level_pv.clear();
+                this_level_pv.push_back(candidates[i]);
+                this_level_pv.insert(this_level_pv.end(), next_level_pv.begin(), next_level_pv.end());
                 if ( score > beta ) {
                     return beta;
                 }
@@ -124,22 +133,19 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth) {
 
         else if(board.side==BLACK) {
             board.makeMove( candidates[i] );
-            int64_t score = alphaBetaSearch(alpha, bestScore, depth-1);
+            int64_t score = alphaBetaSearch(alpha, bestScore, depth-1, next_level_pv);
             board.unmakeMove( candidates[i] );
 
             if( score < bestScore ) {
                 bestScore = score;
-                bestMove = candidates[i];
+                this_level_pv.clear();
+                this_level_pv.push_back(candidates[i]);
+                this_level_pv.insert(this_level_pv.end(), next_level_pv.begin(), next_level_pv.end());
                 if ( score < alpha ) {
                     return alpha;
                 }
             }
         }
-    }
-
-    //if we're at the root, bestMove should be set
-    if( depth == depthLimit ) {
-        this->bestMove = bestMove;
     }
 
     return bestScore;

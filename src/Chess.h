@@ -62,8 +62,6 @@ class Chess
         string bitToStringPosition(uint64_t bit); //Chess.cpp
         string bitPositionToStringPosition(uint8_t bit); //Chess.cpp
         uint64_t stringToBitPosition(string position); //Chess.cpp
-        bool isChecking(); //Chess.cpp
-        bool isValid(Move mv); //Chess.cpp
 
         //Search
         void setTimer(uint64_t time_ms); //ChessSearch.cpp
@@ -73,8 +71,8 @@ class Chess
 
         bool searchInterrupted;
         uint32_t timeToCheckTime;
-        int64_t alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth); //ChessSearch.cpp
-        Move bestMove; //Stores the result of bestMoveSearch
+        int64_t alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth, vector<Move>& this_level_pv); //ChessSearch.cpp
+        vector<Move> pv;
 
         // Evaluation
         int64_t Evaluate(); //ChessEvaluation.cpp
