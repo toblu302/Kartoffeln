@@ -78,6 +78,8 @@ class Chess
         int64_t Evaluate(); //ChessEvaluation.cpp
         int64_t materialEvaluation(); //ChessEvaluation.cpp
         int64_t positionEvaluation(); //ChessEvaluation.cpp
+        uint64_t handleBlackPSQT(const PIECE& piece, const array<int64_t, 64>& table); //ChessEvaluation.cpp
+        uint64_t handleWhitePSQT(const PIECE& piece, const array<int64_t, 64>& table); //
 };
 
 #endif // CHESS_H
