@@ -61,6 +61,19 @@ int64_t Chess::positionEvaluation() {
     score += handleWhitePSQT(BISHOP, BISHOP_PSQT);
     score += handleBlackPSQT(BISHOP, BISHOP_PSQT);
 
+    //rooks
+    score += handleWhitePSQT(ROOK, ROOK_PSQT);
+    score += handleBlackPSQT(ROOK, ROOK_PSQT);
+
+    //queens
+    score += handleWhitePSQT(QUEEN, QUEEN_PSQT);
+    score += handleBlackPSQT(QUEEN, QUEEN_PSQT);
+
+    //kings
+    score += handleWhitePSQT(KING, KING_PSQT);
+    score += handleBlackPSQT(KING, KING_PSQT);
+
+
     return score;
 }
 
