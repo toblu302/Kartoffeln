@@ -68,6 +68,7 @@ class Chess
         bool hasTimeLeft(); //ChessSearch.cpp
         milliseconds allowedTime; //the amount of time for which the search is allowed to run
         time_point<steady_clock> startTime; //the start of the timer
+        uint32_t searched_nodes;
 
         bool searchInterrupted;
         uint32_t timeToCheckTime;

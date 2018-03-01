@@ -73,7 +73,6 @@ int64_t Chess::positionEvaluation() {
     score += handleWhitePSQT(KING, KING_PSQT);
     score += handleBlackPSQT(KING, KING_PSQT);
 
-
     return score;
 }
 

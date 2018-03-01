@@ -53,7 +53,8 @@ Move Chess::getBestMove() {
     vector<Move> temp_pv;
     while( !searchInterrupted && hasTimeLeft() ) {
         timeToCheckTime=30;
-        alphaBetaSearch(INT64_MIN, INT64_MAX, depthLimit, temp_pv);
+        searched_nodes = 0;
+        int64_t score = alphaBetaSearch(INT64_MIN, INT64_MAX, depthLimit, temp_pv);
 
         //If the search was interrupted, set the best move the the best move from the last search
         if( searchInterrupted ) {
@@ -62,7 +63,10 @@ Move Chess::getBestMove() {
 
         //send info using UCI
         pv.clear();
-        cout << "info depth " << int(this->depthLimit) << " pv ";
+        cout << "info depth " << int(this->depthLimit) << " ";
+        cout << "nodes " << int(searched_nodes) << " ";
+        cout << "score cp " << score << " ";
+        cout << "pv ";
         for(auto &mv: temp_pv) {
             cout << moveToString(mv) << " ";
             pv.push_back(mv);
@@ -78,6 +82,7 @@ Move Chess::getBestMove() {
 
 
 int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth, vector<Move>& this_level_pv) {
+
     // check if we have enough time left, and interrupt if we don't
     if( searchInterrupted ) {
         return 0;
@@ -92,6 +97,7 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth, vecto
     }
 
     if( depth == 0 ) {
+        ++searched_nodes;
         return Evaluate();
     }
 
@@ -112,18 +118,19 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth, vecto
     int64_t bestScore = (board.side==WHITE) ? alpha : beta;
     vector<Move> next_level_pv;
 
-    for(uint32_t i=0; i<candidates.size(); ++i) {
+
+    for(auto& candidate : candidates) {
         next_level_pv.clear();
 
         if(board.side==WHITE) {
-            board.makeMove( candidates[i] );
+            board.makeMove( candidate );
             int64_t score = alphaBetaSearch(bestScore, beta, depth-1, next_level_pv);
-            board.unmakeMove( candidates[i] );
+            board.unmakeMove( candidate );
 
             if( score > bestScore ) {
                 bestScore = score;
                 this_level_pv.clear();
-                this_level_pv.push_back(candidates[i]);
+                this_level_pv.push_back(candidate);
                 this_level_pv.insert(this_level_pv.end(), next_level_pv.begin(), next_level_pv.end());
                 if ( score > beta ) {
                     return beta;
@@ -132,14 +139,14 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth, vecto
         }
 
         else if(board.side==BLACK) {
-            board.makeMove( candidates[i] );
+            board.makeMove( candidate );
             int64_t score = alphaBetaSearch(alpha, bestScore, depth-1, next_level_pv);
-            board.unmakeMove( candidates[i] );
+            board.unmakeMove( candidate );
 
             if( score < bestScore ) {
                 bestScore = score;
                 this_level_pv.clear();
-                this_level_pv.push_back(candidates[i]);
+                this_level_pv.push_back(candidate);
                 this_level_pv.insert(this_level_pv.end(), next_level_pv.begin(), next_level_pv.end());
                 if ( score < alpha ) {
                     return alpha;

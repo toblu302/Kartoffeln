@@ -28,6 +28,15 @@ struct Move {
     //history
     uint64_t previous_en_passant_square;
     uint64_t previous_castling_rights;
+
+    bool operator==(const Move& rhs) const {
+        return ((color == rhs.color) &&
+                (move_type == rhs.move_type) &&
+                (from_bitmove == rhs.from_bitmove) &&
+                (to_bitmove == rhs.to_bitmove) &&
+                (previous_en_passant_square == rhs.previous_en_passant_square) &&
+                (previous_castling_rights == rhs.previous_castling_rights) );
+    }
 };
 typedef struct Move Move;
 

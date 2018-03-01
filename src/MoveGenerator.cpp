@@ -83,6 +83,9 @@ MoveGenerator::MoveGenerator() {
 
 void MoveGenerator::getAllMoves(Board& board, vector<Move> &moves) {
 
+    handle_piece(board, moves, KNIGHT, &MoveGenerator::getKnightMoves);
+    handle_piece(board, moves, BISHOP, &MoveGenerator::getBishopMoves);
+
     //handle pawns
     if( board.side == WHITE ) {
         handle_piece(board, moves, PAWN, &MoveGenerator::getWhitePawnMoves);
@@ -91,12 +94,9 @@ void MoveGenerator::getAllMoves(Board& board, vector<Move> &moves) {
         handle_piece(board, moves, PAWN, &MoveGenerator::getBlackPawnMoves);
     }
 
-    //handle the other pieces
-    handle_piece(board, moves, KNIGHT, &MoveGenerator::getKnightMoves);
     handle_piece(board, moves, KING, &MoveGenerator::getKingMoves);
-    handle_piece(board, moves, BISHOP, &MoveGenerator::getBishopMoves);
-    handle_piece(board, moves, ROOK, &MoveGenerator::getRookMoves);
     handle_piece(board, moves, QUEEN, &MoveGenerator::getQueenMoves);
+    handle_piece(board, moves, ROOK, &MoveGenerator::getRookMoves);
 }
 
 bool MoveGenerator::isValid(Board& board, const Move& mv) {
