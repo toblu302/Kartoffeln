@@ -10,6 +10,7 @@ void Chess::printBoard() {
     cout << "Black:" << board.color[BLACK] << endl;
     printBitBoard(this->board.color[BLACK]);
     cout << "Current side: " << board.side << endl;
+    cout << "Current hash: " << board.tt.getHashValue() << endl;
 }
 
 void Chess::printBitBoard(uint64_t board) {

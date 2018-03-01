@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "Move.h"
+#include "Zobrist.h"
 #include "Definitions.h"
 
 struct Board {
@@ -19,6 +20,10 @@ struct Board {
     void makeMove(const Move& mv);
     void unmakeMove(const Move& mv);
     uint64_t getPiecesOfColor(const COLOR& color, const PIECE& piece);
+
+    //TODO: hashing
+    Zobrist tt;
+    bool operator==(const Board& rhs) const;
 };
 typedef struct Board Board;
 

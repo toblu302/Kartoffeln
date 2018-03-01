@@ -30,8 +30,6 @@ class Chess
         void printBitBoard(uint64_t board); //Chess.cpp
 
         // Moves
-        void makeMove(Move mv); //Chess.cpp
-        void unmakeMove(Move mv);
         uint64_t Perft(uint8_t depth); //Chess.cpp
         void PerftDivided(uint8_t depth); //Chess.cpp
 
