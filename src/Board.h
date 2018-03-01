@@ -1,10 +1,13 @@
 #ifndef BOARD_H_INCLUDED
 #define BOARD_H_INCLUDED
 
+#include <unordered_map>
 #include <stdint.h>
 #include "Move.h"
 #include "Zobrist.h"
 #include "Definitions.h"
+
+using std::unordered_map;
 
 struct Board {
     uint64_t pieces[NUM_PIECES];
@@ -21,9 +24,13 @@ struct Board {
     void unmakeMove(const Move& mv);
     uint64_t getPiecesOfColor(const COLOR& color, const PIECE& piece);
 
+    bool hasBeenSeen();
+    void reset();
+
     //TODO: hashing
     Zobrist tt;
     bool operator==(const Board& rhs) const;
+    unordered_map<uint64_t, int> seen_positions;
 };
 typedef struct Board Board;
 

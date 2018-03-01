@@ -3,6 +3,8 @@
 #include "MoveGenerator.h"
 
 void Board::makeMove(const Move& mv) {
+    seen_positions[ tt.getHashValue() ] += 1;
+
     //Update hash values
     tt.saveHashValue();
     uint8_t from_square = __builtin_ffsll(mv.from_bitmove)-1;
@@ -223,11 +225,25 @@ void Board::unmakeMove(const Move& mv) {
         side = WHITE;
     }
     halftimeMove -= 1;
+    seen_positions[tt.getHashValue()] -= 1;
+    if( seen_positions[tt.getHashValue()] <= 0 ) {
+        seen_positions.erase(tt.getHashValue());
+    }
 }
 
 
 uint64_t Board::getPiecesOfColor(const COLOR& color, const PIECE& piece) {
     return this->color[color] & this->pieces[piece];
+}
+
+void Board::reset() {
+    tt.reset();
+    seen_positions.clear();
+}
+
+bool Board::hasBeenSeen()  {
+    uint64_t val = tt.getHashValue();
+    return seen_positions[val] != 0;
 }
 
 bool Board::operator==(const Board& rhs) const {

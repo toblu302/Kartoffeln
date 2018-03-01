@@ -115,9 +115,13 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth, vecto
         return retval;
     }
 
+    // draw by 3-fold repetition detection
+    if( board.hasBeenSeen() && depth != depthLimit) {
+        return 0;
+    }
+
     int64_t bestScore = (board.side==WHITE) ? alpha : beta;
     vector<Move> next_level_pv;
-
 
     for(auto& candidate : candidates) {
         next_level_pv.clear();
