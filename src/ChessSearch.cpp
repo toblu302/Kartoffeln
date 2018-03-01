@@ -101,7 +101,7 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth, vecto
         return Evaluate();
     }
 
-    vector< Move > candidates;
+    priority_queue< Move > candidates;
     getAllMoves(candidates);
 
     // Check for mates/stalemates
@@ -123,7 +123,10 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth, vecto
     int64_t bestScore = (board.side==WHITE) ? alpha : beta;
     vector<Move> next_level_pv;
 
-    for(auto& candidate : candidates) {
+    while( candidates.size() != 0 ) {
+        Move candidate = candidates.top();
+        candidates.pop();
+
         next_level_pv.clear();
 
         if(board.side==WHITE) {
@@ -162,6 +165,6 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth, vecto
     return bestScore;
 }
 
-void Chess::getAllMoves(vector<Move> &moves) {
+void Chess::getAllMoves(priority_queue<Move> &moves) {
     movegen.getAllMoves(this->board, moves);
 }

@@ -2,22 +2,24 @@
 #define MOVEGENERATOR_H
 
 #include <vector>
+#include <queue>
 #include "Board.h"
 
 using std::vector;
+using std::priority_queue;
 
 class MoveGenerator {
     public:
         MoveGenerator();
-        void getAllMoves(Board& board, vector<Move> &moves);
+        void getAllMoves(Board& board, priority_queue<Move> &moves);
 
         //helpful methods which should be moved somewhere else
         bool isValid(Board& board, const Move& mv);
         bool isChecking(Board& board);
 
     private:
-        void handle_piece(Board& board, vector<Move> &moves, PIECE piece, uint64_t (MoveGenerator::*get_moves)(const Board& board, const uint8_t &position) );
-        void handle_pawn_moves(Board& board, Move& mv, vector<Move>& moves);
+        void handle_piece(Board& board, priority_queue<Move> &moves, PIECE piece, uint64_t (MoveGenerator::*get_moves)(const Board& board, const uint8_t &position) );
+        void handle_pawn_moves(Board& board, Move& mv, priority_queue<Move>& moves);
 
         // Bitboard operations: they return a 64-bit integer in which a bit is set if the piece on position can move there
         uint64_t getWhitePawnAttackMoves(const Board& board, const uint8_t& position);

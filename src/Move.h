@@ -37,6 +37,10 @@ struct Move {
                 (previous_en_passant_square == rhs.previous_en_passant_square) &&
                 (previous_castling_rights == rhs.previous_castling_rights) );
     }
+
+    bool operator<(const Move& rhs) const {
+        return (move_type!=CAPTURE && rhs.move_type==CAPTURE);
+    }
 };
 typedef struct Move Move;
 

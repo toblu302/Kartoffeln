@@ -37,11 +37,14 @@ void Chess::printBitBoard(uint64_t board) {
 
 void Chess::PerftDivided(uint8_t depth)
 {
-    vector<Move> moves;
+    priority_queue<Move> moves;
     this->getAllMoves(moves);
 
     uint64_t totalNodes = 0;
-    for (auto &move: moves) {
+    while( moves.size() != 0 ) {
+        Move move = moves.top();
+        moves.pop();
+
         cout << moveToString(move) << ": ";
         board.makeMove(move);
         uint64_t nodes = Perft(depth - 1);
@@ -55,13 +58,16 @@ void Chess::PerftDivided(uint8_t depth)
 uint64_t Chess::Perft(uint8_t depth)
 {
     if (depth == 0) return 1;
-    vector<Move> moves;
+    priority_queue<Move> moves;
     this->getAllMoves(moves);
     if (depth == 1) return moves.size();
 
     uint64_t nodes = 0;
 
-    for (auto &move: moves) {
+    while( moves.size() != 0 ) {
+        Move move = moves.top();
+        moves.pop();
+
         board.makeMove(move);
         nodes += Perft(depth - 1);
         board.unmakeMove(move);

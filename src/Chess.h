@@ -7,6 +7,7 @@
 #include <array>
 #include <stdint.h>
 #include <chrono>
+#include <queue>
 
 #include "Move.h"
 #include "Board.h"
@@ -14,6 +15,7 @@
 
 using namespace std;
 using namespace std::chrono;
+using std::priority_queue;
 
 class Chess
 {
@@ -37,7 +39,7 @@ class Chess
         string moveToString(Move mv); //Chess.cpp
         Move stringToMove(string mv); //Chess.cpp
         Move getBestMove(); //ChessSearch.cpp
-        void getAllMoves(vector<Move> &moves); //ChessSearch.cpp
+        void getAllMoves(priority_queue<Move> &moves); //ChessSearch.cpp
 
         bool depthOnly; // to handle "go depth x"
         uint8_t depthLimit;

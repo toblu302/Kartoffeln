@@ -81,7 +81,7 @@ MoveGenerator::MoveGenerator() {
     }
 }
 
-void MoveGenerator::getAllMoves(Board& board, vector<Move> &moves) {
+void MoveGenerator::getAllMoves(Board& board, priority_queue<Move> &moves) {
 
     handle_piece(board, moves, KNIGHT, &MoveGenerator::getKnightMoves);
     handle_piece(board, moves, BISHOP, &MoveGenerator::getBishopMoves);
@@ -133,7 +133,7 @@ bool MoveGenerator::isChecking(Board& board) {
     return (bitMoves & this_side_pieces) != 0;
 }
 
-void MoveGenerator::handle_piece(Board& board, vector<Move> &moves, PIECE piece, uint64_t (MoveGenerator::*get_moves)(const Board& board, const uint8_t &position) ) {
+void MoveGenerator::handle_piece(Board& board, priority_queue<Move> &moves, PIECE piece, uint64_t (MoveGenerator::*get_moves)(const Board& board, const uint8_t &position) ) {
     Move mv;
     mv.color = board.side;
     mv.previous_castling_rights = board.CASTLE_RIGHTS;
@@ -172,34 +172,34 @@ void MoveGenerator::handle_piece(Board& board, vector<Move> &moves, PIECE piece,
                 handle_pawn_moves(board, mv, moves);
             }
             else {
-                if(isValid(board, mv)) moves.push_back( mv );
+                if(isValid(board, mv)) moves.emplace( mv );
             }
         }
     }
 }
 
-void MoveGenerator::handle_pawn_moves(Board& board, Move& mv, vector<Move>& moves) {
+void MoveGenerator::handle_pawn_moves(Board& board, Move& mv, priority_queue<Move>& moves) {
     //handle promotions
     if( ((mv.to_bitmove & 0xFF) | (mv.to_bitmove & (uint64_t(0xFF) << 56))) ) {
         if( mv.move_type == CAPTURE ) {
             mv.move_type = PROMOTION_QUEEN_CAPTURE;
-            if( isValid(board, mv) ) moves.push_back(mv);
+            if( isValid(board, mv) ) moves.emplace(mv);
             mv.move_type = PROMOTION_BISHOP_CAPTURE;
-            if( isValid(board, mv) ) moves.push_back(mv);
+            if( isValid(board, mv) ) moves.emplace(mv);
             mv.move_type = PROMOTION_KNIGHT_CAPTURE;
-            if( isValid(board, mv) ) moves.push_back(mv);
+            if( isValid(board, mv) ) moves.emplace(mv);
             mv.move_type = PROMOTION_ROOK_CAPTURE;
-            if( isValid(board, mv) ) moves.push_back(mv);
+            if( isValid(board, mv) ) moves.emplace(mv);
             return;
         }
         mv.move_type = PROMOTION_QUEEN;
-        if( isValid(board, mv) ) moves.push_back(mv);
+        if( isValid(board, mv) ) moves.emplace(mv);
         mv.move_type = PROMOTION_BISHOP;
-        if( isValid(board, mv) ) moves.push_back(mv);
+        if( isValid(board, mv) ) moves.emplace(mv);
         mv.move_type = PROMOTION_KNIGHT;
-        if( isValid(board, mv) ) moves.push_back(mv);
+        if( isValid(board, mv) ) moves.emplace(mv);
         mv.move_type = PROMOTION_ROOK;
-        if( isValid(board, mv) ) moves.push_back(mv);
+        if( isValid(board, mv) ) moves.emplace(mv);
         return;
     }
 
@@ -214,7 +214,7 @@ void MoveGenerator::handle_pawn_moves(Board& board, Move& mv, vector<Move>& move
         mv.move_type = EN_PASSANT_CAPTURE;
     }
 
-    if( isValid(board, mv) ) moves.push_back(mv);
+    if( isValid(board, mv) ) moves.emplace(mv);
 }
 
 /*************************************
