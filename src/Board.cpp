@@ -1,9 +1,11 @@
+#include <algorithm>
 #include "Board.h"
 #include "Move.h"
 #include "MoveGenerator.h"
 
+using std::find;
+
 void Board::makeMove(const Move& mv) {
-    seen_positions[ tt.getHashValue() ] += 1;
 
     //Update hash values
     tt.saveHashValue();
@@ -136,6 +138,8 @@ void Board::makeMove(const Move& mv) {
         side = WHITE;
     }
     halftimeMove += 1;
+
+    seen_positions.push_back( tt.getHashValue() );
 }
 
 void Board::unmakeMove(const Move& mv) {
@@ -225,10 +229,7 @@ void Board::unmakeMove(const Move& mv) {
         side = WHITE;
     }
     halftimeMove -= 1;
-    seen_positions[tt.getHashValue()] -= 1;
-    if( seen_positions[tt.getHashValue()] <= 0 ) {
-        seen_positions.erase(tt.getHashValue());
-    }
+    seen_positions.pop_back();
 }
 
 
@@ -236,14 +237,8 @@ uint64_t Board::getPiecesOfColor(const COLOR& color, const PIECE& piece) {
     return this->color[color] & this->pieces[piece];
 }
 
-void Board::reset() {
-    tt.reset();
-    seen_positions.clear();
-}
-
 bool Board::hasBeenSeen()  {
-    uint64_t val = tt.getHashValue();
-    return seen_positions[val] != 0;
+    return find( seen_positions.begin(), seen_positions.end()-1, tt.getHashValue() ) != seen_positions.end()-1;
 }
 
 bool Board::operator==(const Board& rhs) const {

@@ -116,7 +116,7 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth, vecto
     }
 
     // draw by 3-fold repetition detection
-    if( board.hasBeenSeen() && depth != depthLimit) {
+    if( depth != depthLimit && board.hasBeenSeen() ) {
         return 0;
     }
 
