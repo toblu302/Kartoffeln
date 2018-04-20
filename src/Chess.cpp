@@ -33,6 +33,16 @@ void Chess::printBitBoard(uint64_t board) {
     }
 
     cout << theString << endl;
+
+    priority_queue<Move> moves;
+    this->getAllMoves(moves);
+    while( moves.size() != 0 ) {
+        Move move = moves.top();
+        moves.pop();
+
+        cout << moveToString(move) << ", ";
+    }
+    cout << endl;
 }
 
 void Chess::PerftDivided(uint8_t depth)
