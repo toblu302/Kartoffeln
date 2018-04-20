@@ -2,7 +2,11 @@
 #include "PSQT.h"
 
 int64_t Chess::Evaluate() {
-    return materialEvaluation() + positionEvaluation();
+    int64_t score = materialEvaluation() + positionEvaluation();
+    if( board.side == WHITE ) {
+        return score;
+    }
+    return -score;
 }
 
 int64_t Chess::materialEvaluation() {
