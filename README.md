@@ -6,6 +6,8 @@ Uses 64-bit bitboards to represent the current state of the game.
 
 #### Search
 * Negamax with alpha-beta cutoff
+* Iterative deepening
+* Most Valuable Victim - Least Valuable Attacker move ordering.
 
 #### Evaluation
 * Material counting
