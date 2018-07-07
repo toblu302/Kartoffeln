@@ -143,7 +143,8 @@ int main()
 
         //if we've parsed a go command, we should search for a move
         if( state == "go" ) {
-            cout << "bestmove " << chess.moveToString( chess.getBestMove() ) << endl;
+            string bestmove = chess.moveToString( chess.getBestMove() );
+            cout << "bestmove " << bestmove << endl;
         }
     }
 
