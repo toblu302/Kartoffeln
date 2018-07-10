@@ -96,7 +96,7 @@ int64_t Chess::alphaBetaSearch(int64_t alpha, int64_t beta, uint8_t depth, vecto
 
     if( depth == 0 ) {
         ++searched_nodes;
-        return Evaluate();
+        return evaluator.Evaluate(this->board);
     }
 
     priority_queue< Move > candidates;

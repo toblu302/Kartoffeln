@@ -1,15 +1,22 @@
-#include "Chess.h"
+#include "PositionEvaluator.h"
 #include "PSQT.h"
+#include "Definitions.h"
 
-int64_t Chess::Evaluate() {
-    int64_t score = materialEvaluation() + positionEvaluation();
+int64_t PositionEvaluator::Evaluate(const Board& board) {
+    int64_t PSQTscoreMid = PSQTevaluation(board, PSQT_MIDDLE);
+    int64_t PSQTscoreEnd = PSQTevaluation(board, PSQT_END);
+    int phase = __builtin_popcountll(board.color[WHITE] | board.color[BLACK]);
+    int64_t PSQTscore = (phase/32.0)*(PSQTscoreMid-PSQTscoreEnd) + PSQTscoreEnd;
+
+    int64_t score = materialEvaluation(board) + PSQTscore;
+
     if( board.side == WHITE ) {
         return score;
     }
     return -score;
 }
 
-int64_t Chess::materialEvaluation() {
+int64_t PositionEvaluator::materialEvaluation(const Board& board) {
 
     int64_t score = 0;
 
@@ -28,7 +35,7 @@ int64_t Chess::materialEvaluation() {
     return score;
 }
 
-uint64_t Chess::handleBlackPSQT(const PIECE& piece, const array<int64_t, 64>& table) {
+uint64_t PositionEvaluator::handleBlackPSQT(const Board& board, const PIECE& piece, const array<int64_t, 64>& table) {
     uint64_t score = 0;
     uint64_t pieces = board.pieces[piece] & board.color[BLACK];
     while( pieces != 0 ) {
@@ -39,7 +46,7 @@ uint64_t Chess::handleBlackPSQT(const PIECE& piece, const array<int64_t, 64>& ta
     return score;
 }
 
-uint64_t Chess::handleWhitePSQT(const PIECE& piece, const array<int64_t, 64>& table) {
+uint64_t PositionEvaluator::handleWhitePSQT(const Board& board, const PIECE& piece, const array<int64_t, 64>& table) {
     uint64_t score = 0;
     uint64_t pieces = board.pieces[piece] & board.color[WHITE];
     while( pieces != 0 ) {
@@ -50,35 +57,32 @@ uint64_t Chess::handleWhitePSQT(const PIECE& piece, const array<int64_t, 64>& ta
     return score;
 }
 
-int64_t Chess::positionEvaluation() {
+int64_t PositionEvaluator::PSQTevaluation(const Board& board, const array< array<int64_t, 64>, 6> &PSQT) {
     uint64_t score = 0;
 
-    bool endgame = __builtin_popcountll( board.color[WHITE] | board.color[BLACK] ) <= 13 ? true : false;
-    array< array<int64_t, 64>, 6> PSQT = endgame ? PSQT_END : PSQT_MIDDLE;
-
     //pawns
-    score += handleWhitePSQT(PAWN, PSQT[PAWN]);
-    score += handleBlackPSQT(PAWN, PSQT[PAWN]);
+    score += handleWhitePSQT(board, PAWN, PSQT[PAWN]);
+    score += handleBlackPSQT(board, PAWN, PSQT[PAWN]);
 
     //knights
-    score += handleWhitePSQT(KNIGHT, PSQT[KNIGHT]);
-    score += handleBlackPSQT(KNIGHT, PSQT[KNIGHT]);
+    score += handleWhitePSQT(board, KNIGHT, PSQT[KNIGHT]);
+    score += handleBlackPSQT(board, KNIGHT, PSQT[KNIGHT]);
 
     //bishops
-    score += handleWhitePSQT(BISHOP, PSQT[BISHOP]);
-    score += handleBlackPSQT(BISHOP, PSQT[BISHOP]);
+    score += handleWhitePSQT(board, BISHOP, PSQT[BISHOP]);
+    score += handleBlackPSQT(board, BISHOP, PSQT[BISHOP]);
 
     //rooks
-    score += handleWhitePSQT(ROOK, PSQT[ROOK]);
-    score += handleBlackPSQT(ROOK, PSQT[ROOK]);
+    score += handleWhitePSQT(board, ROOK, PSQT[ROOK]);
+    score += handleBlackPSQT(board, ROOK, PSQT[ROOK]);
 
     //queens
-    score += handleWhitePSQT(QUEEN, PSQT[QUEEN]);
-    score += handleBlackPSQT(QUEEN, PSQT[QUEEN]);
+    score += handleWhitePSQT(board, QUEEN, PSQT[QUEEN]);
+    score += handleBlackPSQT(board, QUEEN, PSQT[QUEEN]);
 
     //kings
-    score += handleWhitePSQT(KING, PSQT[KING]);
-    score += handleBlackPSQT(KING, PSQT[KING]);
+    score += handleWhitePSQT(board, KING, PSQT[KING]);
+    score += handleBlackPSQT(board, KING, PSQT[KING]);
 
     return score;
 }
