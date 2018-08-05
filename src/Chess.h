@@ -21,8 +21,6 @@ using std::priority_queue;
 class Chess
 {
     public:
-        Chess();
-
         // Setup
         void setup(); //ChessSetup.cpp
         void setup(string fenstring); //ChessSetup.cpp
