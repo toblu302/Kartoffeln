@@ -1,14 +1,22 @@
-#include "PositionEvaluator.h"
-#include "PSQT.h"
 #include "Definitions.h"
+#include "Move.h"
+#include "PSQT.h"
+#include "PositionEvaluator.h"
 
-int64_t PositionEvaluator::Evaluate(const Board& board) {
+#include <queue>
+
+using std::priority_queue;
+
+int64_t PositionEvaluator::Evaluate(Board& board) {
     int64_t PSQTscoreMid = PSQTevaluation(board, PSQT_MIDDLE);
     int64_t PSQTscoreEnd = PSQTevaluation(board, PSQT_END);
     int phase = __builtin_popcountll(board.color[WHITE] | board.color[BLACK]);
     int64_t PSQTscore = (phase/32.0)*(PSQTscoreMid-PSQTscoreEnd) + PSQTscoreEnd;
 
-    int64_t score = materialEvaluation(board) + PSQTscore;
+    priority_queue<Move> moves;
+    movegen.getAllMoves(board, moves);
+
+    int64_t score = materialEvaluation(board) + PSQTscore + moves.size();
 
     if( board.side == WHITE ) {
         return score;

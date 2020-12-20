@@ -12,6 +12,7 @@ Uses 64-bit bitboards to represent the current state of the game.
 #### Evaluation
 * Material counting
 * PSQT (midgame and endgame with interpolation)
+* Mobility (move counting)
 
 ### Custom UCI commands
 perft [depth], i.e "perft 4".
