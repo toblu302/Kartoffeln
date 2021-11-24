@@ -65,7 +65,7 @@ struct Move {
     bool operator<(const Move& rhs) const {
 
         if( isCapture() && rhs.isCapture() ) {
-            return (get_captured_value()-moving_piece) < (rhs.get_captured_value()-rhs.moving_piece);
+            return (get_captured_value()-moving_piece*100) < (rhs.get_captured_value()-rhs.moving_piece*100);
         }
         return !isCapture() && rhs.isCapture();
     }
