@@ -36,12 +36,8 @@ class MoveGenerator {
         uint64_t getKingMoves(const Board& board, const uint8_t& king_position);
         uint64_t getKingCastles(const Board& board, const uint8_t& king_position);
 
+        uint64_t getBishopMovesSlow(const uint64_t& occupancy, const uint8_t& p_x, const uint8_t& p_y);
         uint64_t getRookMovesSlow(const uint64_t& occupancy, const uint8_t& p_x, const uint8_t& p_y);
-
-        // Bitboard operations for sliding pieces
-        uint64_t getSlidingMovesFromOccupancy(const Board& board, const uint8_t& column, const uint8_t& occupancy);
-        uint64_t getSlidingAlongDiagonalA1H8(const Board& board, const uint8_t& piece_position, const uint64_t& blockers);
-        uint64_t getSlidingAlongDiagonalA8H1(const Board& board, const uint8_t& piece_position, const uint64_t& blockers);
 
         // Helpful methods
         uint64_t getWhiteAttacking(const Board& board);
@@ -57,9 +53,9 @@ class MoveGenerator {
 
         uint64_t KNIGHT_MOVES[64];
         uint64_t KING_MOVES[64];
-        uint64_t SLIDING_MOVES[8][256];
 
         std::array<uint64_t, 64> rook_masks;
+        std::array<uint64_t, 64> bishop_masks;
 
         // ~ Magic ~
         std::array<uint64_t, 64> rook_magic = { 0x5080009440008420, 0x200a0020410052, 0x4020000a80600400, 0x4558040004900900,
@@ -79,6 +75,24 @@ class MoveGenerator {
                                                 0x112101f022008046, 0x804210310494001, 0x4085100200125, 0x120028200402,
                                                 0x40087902001022, 0x140c804002204c1, 0x42482820821004c4, 0x404a405450082 };
         uint64_t rook_lookup[64][4096];
+
+        std::array<uint64_t, 64> bishop_magic = { 0x2000823004001080, 0x9044420845a000, 0x110100920160205, 0x4110104050400210,
+                                                  0x1004002000040002, 0x100a1504000000, 0x8010280019200300, 0x80a100422000,
+                                                  0x802400480801106, 0x430810288e0040, 0x401808101012c02, 0x40480203004012c,
+                                                  0x220080c10400, 0x2000486950400004, 0x400093818421c, 0x1208002886002c08,
+                                                  0x8a02220040a081, 0x8400088401104, 0x1010800040c10044, 0xa000200802000400,
+                                                  0x2c3000202420480, 0x8180400809210400, 0x93848800d401200, 0x2200104812003080,
+                                                  0x60054021bc80080, 0x10221186120103c0, 0x2060100000458081, 0x428180000a20020,
+                                                  0x12088c0000802000, 0x8400204041a40200, 0x4020900804004310, 0x502009320840014,
+                                                  0x440401900100, 0x4200602882a02080, 0x4c002010100c010c, 0x4010140400080120,
+                                                  0x80e0008400328020, 0x48411120290020, 0x4120920004005402, 0x400c840208104120,
+                                                  0x2004202004001c00, 0xa095188820012210, 0x2010100120049c0, 0x129102c0802012,
+                                                  0x2000028082000c00, 0x20c0492200852008, 0x13004420201100, 0xc000204a00110680,
+                                                  0x1001c108941300c1, 0x3d00430490052000, 0x1280880a40a20902, 0x10000498060021,
+                                                  0x2200241489205020, 0x2041100241a1180, 0xa2202202028006, 0x230020108933000,
+                                                  0x2000021284d80a44, 0x2000820a0110480, 0x8200440462082056, 0x2000021040100410,
+                                                  0xd80000030510040, 0x220020200240d064, 0x1007010050043, 0x40b080c0206c0420 };
+        uint64_t bishop_lookup[64][512];
 };
 
 #endif

@@ -1,4 +1,5 @@
 #include "MoveGenerator.h"
+#include <iostream>
 
 uint64_t MoveGenerator::getRookMovesSlow(const uint64_t& occupancy, const uint8_t& p_x, const uint8_t& p_y) {
     uint64_t answer = 0;
@@ -27,6 +28,40 @@ uint64_t MoveGenerator::getRookMovesSlow(const uint64_t& occupancy, const uint8_
     // Down
     for(int y=p_y-1; y>=0; --y) {
         uint64_t mask = uint64_t(1) << (y*8+p_x);
+        answer |= mask;
+        if(mask & occupancy) break;
+    }
+
+    return answer;
+}
+
+uint64_t MoveGenerator::getBishopMovesSlow(const uint64_t& occupancy, const uint8_t& p_x, const uint8_t& p_y) {
+    uint64_t answer = 0;
+
+    // Up, Right
+    for(int x=p_x+1, y=p_y+1; x<8 && y<8; ++x, ++y) {
+        uint64_t mask = uint64_t(1) << (y*8+x);
+        answer |= mask;
+        if(mask & occupancy) break;
+    }
+
+    // Up, Left
+    for(int x=p_x-1, y=p_y+1; x>=0 && y<8; --x, ++y) {
+        uint64_t mask = uint64_t(1) << (y*8+x);
+        answer |= mask;
+        if(mask & occupancy) break;
+    }
+
+    // Down, Right
+    for(int x=p_x+1, y=p_y-1; x<8 && y>=0; ++x, --y) {
+        uint64_t mask = uint64_t(1) << (y*8+x);
+        answer |= mask;
+        if(mask & occupancy) break;
+    }
+
+    // Down, Left
+    for(int x=p_x-1, y=p_y-1; x>=0 && y>=0; --x, --y) {
+        uint64_t mask = uint64_t(1) << (y*8+x);
         answer |= mask;
         if(mask & occupancy) break;
     }
@@ -97,6 +132,21 @@ MoveGenerator::MoveGenerator() {
         }
     }
 
+    // Calculate bishop bitmasks
+    for(uint8_t px=0; px<8; ++px) {
+        for(uint8_t py=0; py<8; ++py) {
+            uint64_t occupancy_mask = 0;
+            for(int x=1, y=(py-px)+1; x<7 && y<7; ++x, ++y) {
+                if(y>0) occupancy_mask |= uint64_t(1) << (y*8+x);
+            }
+            for(int x=1, y=(px+py)-1; x<7 && y>0; ++x, --y) {
+                if(y<7) occupancy_mask |= uint64_t(1) << (y*8+x);
+            }
+            occupancy_mask &= ~(uint64_t(1) << (py*8+px));
+            bishop_masks[py*8+px] = occupancy_mask;
+        }
+    }
+
     // Calculate rook moves
     for(uint8_t square=0; square<64; ++square) {
         uint8_t p_x = square%8;
@@ -126,35 +176,38 @@ MoveGenerator::MoveGenerator() {
         }
     }
 
+    // Calculate bishop moves
+    for(uint8_t square=0; square<64; ++square) {
+        uint8_t p_x = square%8;
+        uint8_t p_y = square/8;
 
-    //Calculate the possible sliding moves
-    // The "column" is the column of the moving piece for which you want to calculate moves
-    // The "occ" (occupancy) is a bitboard with the pieces which will block the moving piece
-    // SLIDING_MOVES[column][occ] is a bitboard with the positions to which the piece can move
-    for(int column=0; column<8; ++column) {
-        for(int occ=0; occ < 256; ++occ) {
+        for(uint16_t i=0; i<4096; ++i) {
+            uint64_t occupancy_mask = 0;
 
-            uint8_t result = 0;
-
-            //increasing
-            for(int curr=column+1; curr<8; ++curr) {
-                result |= (uint8_t(1) << curr);
-
-                if( (uint8_t(1) << curr) & occ ) {
-                    break;
+            int j=0;
+            for(int x=1, y=(p_y-p_x)+1; x<7 && y<7; ++x, ++y) {
+                if(y>0) {
+                    uint8_t a = y*8+x;
+                    uint64_t value1 = (i >> j) & 1;
+                    occupancy_mask |= value1 << a;
+                    ++j;
                 }
             }
-
-            //decreasing
-            for(int curr=column-1; curr>=0; --curr) {
-                result |= uint8_t(1) << curr;
-
-                if( (uint8_t(1) << curr) & occ ) {
-                    break;
+            for(int x=1, y=(p_x+p_y)-1; x<7 && y>0; ++x, --y) {
+                if(y<7) {
+                    uint8_t a = y*8+x;
+                    uint64_t value1 = (i >> j) & 1;
+                    occupancy_mask |= value1 << a;
+                    ++j;
                 }
             }
+            
+            occupancy_mask &= ~(uint64_t(1) << square);
 
-            SLIDING_MOVES[column][occ] = result;
+            uint16_t hash = (occupancy_mask*bishop_magic[square]) >> 55;
+            uint64_t answer = getBishopMovesSlow(occupancy_mask, square%8, square/8);
+
+            bishop_lookup[square][hash] = answer;
         }
     }
 }
@@ -190,10 +243,12 @@ bool MoveGenerator::isChecking(Board& board) {
     uint64_t blockers = (board.side == WHITE) ? board.color[BLACK] : board.color[WHITE]; //get the other players pieces
     uint32_t king_position = __builtin_ffsll( board.pieces[KING] & blockers )-1; //get the other players king
 
-    uint64_t diagonal_sliders = getSlidingAlongDiagonalA1H8(board, king_position, blockers) | getSlidingAlongDiagonalA8H1(board, king_position, blockers);
+    uint64_t occupancy = (board.color[WHITE] | board.color[BLACK]) & bishop_masks[king_position];
+    uint16_t hash = (occupancy*bishop_magic[king_position]) >> 55;
+    uint64_t diagonal_sliders = bishop_lookup[king_position][hash] & ~blockers;
 
-    uint64_t occupancy = (board.color[WHITE] | board.color[BLACK]) & rook_masks[king_position];
-    uint16_t hash = (occupancy*rook_magic[king_position]) >> 52;
+    occupancy = (board.color[WHITE] | board.color[BLACK]) & rook_masks[king_position];
+    hash = (occupancy*rook_magic[king_position]) >> 52;
     uint64_t vertical_sliders = rook_lookup[king_position][hash] & ~blockers;
 
     uint64_t bitMoves = uint64_t(0);
@@ -392,9 +447,9 @@ uint64_t MoveGenerator::getKingCastles(const Board& board, const uint8_t &king_p
 }
 
 uint64_t MoveGenerator::getBishopMoves(const Board& board, const uint8_t &bishop_position) {
-    uint64_t bitMoves = getSlidingAlongDiagonalA1H8( board, bishop_position, board.color[board.side] );
-    bitMoves |= getSlidingAlongDiagonalA8H1( board, bishop_position, board.color[board.side] );
-    return bitMoves;
+    uint64_t occupancy = (board.color[WHITE] | board.color[BLACK]) & bishop_masks[bishop_position];
+    uint16_t hash = (occupancy*bishop_magic[bishop_position]) >> 55;
+    return bishop_lookup[bishop_position][hash] & ~(board.color[board.side]);
 }
 
 uint64_t MoveGenerator::getRookMoves(const Board& board, const uint8_t &rook_position) {
@@ -407,83 +462,6 @@ uint64_t MoveGenerator::getQueenMoves(const Board& board, const uint8_t &queen_p
     uint64_t bitMoves = getRookMoves(board, queen_position);
     bitMoves |= getBishopMoves(board, queen_position);
     return bitMoves;
-}
-
-/*************************************
-*    bitboard operations - sliding
-**************************************/
-
-uint64_t MoveGenerator::getSlidingMovesFromOccupancy(const Board& board, const uint8_t& column, const uint8_t& occupancy) {
-    uint64_t retValue = SLIDING_MOVES[column][occupancy];
-    return retValue;
-}
-
-uint64_t MoveGenerator::getSlidingAlongDiagonalA1H8(const Board& board, const uint8_t& piece_position, const uint64_t& blockers) {
-
-    uint64_t ALL_PIECES = (board.color[WHITE] | board.color[BLACK]);
-
-    uint8_t column = piece_position%8;
-    uint8_t row = (piece_position-column)/8;
-
-    uint8_t occupancy = 0;
-    int8_t r = row-column;
-    for(uint8_t c=0; c<8; ++c) {
-        if(r>=0 && r<=7) {
-            occupancy |= (((ALL_PIECES >> (r*8+c)) & 1) << c);
-        }
-
-        ++r;
-    }
-
-    //convert back into a column
-    uint64_t sliding_moves = getSlidingMovesFromOccupancy(board, column, occupancy);
-    uint64_t bitMoves = 0;
-
-    r = row-column;
-    for(uint8_t c=0; c<8; ++c) {
-        if(r>=0 && r<=7) {
-            bitMoves |= ((sliding_moves>>c)&1) << (r*8+c);
-        }
-
-        ++r;
-    }
-
-    //return to be about the column and return
-    return bitMoves & ~blockers;
-}
-
-uint64_t MoveGenerator::getSlidingAlongDiagonalA8H1(const Board& board, const uint8_t& piece_position, const uint64_t& blockers) {
-
-    uint64_t ALL_PIECES = (board.color[WHITE] | board.color[BLACK]);
-
-    uint8_t column = piece_position%8;
-    uint8_t row = (piece_position-column)/8;
-
-    uint8_t occupancy = 0;
-    int8_t r = row+column;
-    for(uint8_t c=0; c<8; ++c) {
-        if(r>=0 && r<=7) {
-            occupancy |= (((ALL_PIECES >> (r*8+c)) & 1) << c);
-        }
-
-        --r;
-    }
-
-    //convert back into a column
-    uint64_t sliding_moves = getSlidingMovesFromOccupancy(board, column, occupancy);
-    uint64_t bitMoves = 0;
-
-    r = row+column;
-    for(uint8_t c=0; c<8; ++c) {
-        if(r>=0 && r<=7) {
-            bitMoves |= ((sliding_moves>>c)&1) << (r*8+c);
-        }
-
-        --r;
-    }
-
-    //return to be about the column and return
-    return bitMoves & ~blockers;
 }
 
 /***********************
@@ -508,12 +486,10 @@ uint64_t MoveGenerator::getWhiteAttacking(const Board& board) {
             bitMoves |= getRookMoves(board, x);
         }
         else if( board.pieces[ BISHOP ] & shifted & board.color[WHITE] ) {
-            bitMoves |= getSlidingAlongDiagonalA1H8( board, x, blockers );
-            bitMoves |= getSlidingAlongDiagonalA8H1( board, x, blockers );
+            bitMoves |= getBishopMoves(board, x);
         }
         else if( board.pieces[ QUEEN ] & shifted & board.color[WHITE] ) {
-            bitMoves |= getSlidingAlongDiagonalA1H8( board, x, blockers );
-            bitMoves |= getSlidingAlongDiagonalA8H1( board, x, blockers );
+            bitMoves |= getBishopMoves(board, x);
             bitMoves |= getRookMoves(board, x);
         }
     }
@@ -539,12 +515,10 @@ uint64_t MoveGenerator::getBlackAttacking(const Board& board) {
             bitMoves |= getRookMoves(board, x);
         }
         else if( board.pieces[ BISHOP ] & shifted & board.color[BLACK] ) {
-            bitMoves |= getSlidingAlongDiagonalA1H8( board, x, blockers );
-            bitMoves |= getSlidingAlongDiagonalA8H1( board, x, blockers );
+            bitMoves |= getBishopMoves(board, x);
         }
         else if( board.pieces[ QUEEN ] & shifted & board.color[BLACK] ) {
-            bitMoves |= getSlidingAlongDiagonalA1H8( board, x, blockers );
-            bitMoves |= getSlidingAlongDiagonalA8H1( board, x, blockers );
+            bitMoves |= getBishopMoves(board, x);
             bitMoves |= getRookMoves(board, x);
         }
     }
