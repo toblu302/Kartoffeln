@@ -1,5 +1,39 @@
 #include "MoveGenerator.h"
 
+uint64_t MoveGenerator::getRookMovesSlow(const uint64_t& occupancy, const uint8_t& p_x, const uint8_t& p_y) {
+    uint64_t answer = 0;
+
+    // Right
+    for(int x=p_x+1; x<8; ++x) {
+        uint64_t mask = uint64_t(1) << (p_y*8+x);
+        answer |= mask;
+        if(mask & occupancy) break;
+    }
+
+    // Left
+    for(int x=p_x-1; x>=0; --x) {
+        uint64_t mask = uint64_t(1) << (p_y*8+x);
+        answer |= mask;
+        if(mask & occupancy) break;
+    }
+
+    // Up
+    for(int y=p_y+1; y<8; ++y) {
+        uint64_t mask = uint64_t(1) << (y*8+p_x);
+        answer |= mask;
+        if(mask & occupancy) break;
+    }
+
+    // Down
+    for(int y=p_y-1; y>=0; --y) {
+        uint64_t mask = uint64_t(1) << (y*8+p_x);
+        answer |= mask;
+        if(mask & occupancy) break;
+    }
+
+    return answer;
+}
+
 MoveGenerator::MoveGenerator() {
     //Setup constants describing files and ranks as bitboards, where RANK[0] is rank 1 and FILE[0] is file A
     for(int i=0; i<8; ++i) {
@@ -48,6 +82,50 @@ MoveGenerator::MoveGenerator() {
 
         KING_MOVES[pos] = result;
     }
+
+    // Calculate rook bitmasks
+    for(uint8_t px=0; px<8; ++px) {
+        for(uint8_t py=0; py<8; ++py) {
+            uint64_t occupancy_mask = 0;
+            for(int j=1; j<7; ++j) {
+                uint8_t p1 = py*8+j;
+                uint8_t p2 = j*8+px;
+                if(j != px) occupancy_mask |= uint64_t(1) << p1;
+                if(j != py) occupancy_mask |= uint64_t(1) << p2;
+            }
+            rook_masks[py*8+px] = occupancy_mask;
+        }
+    }
+
+    // Calculate rook moves
+    for(uint8_t square=0; square<64; ++square) {
+        uint8_t p_x = square%8;
+        uint8_t p_y = square/8;
+
+        for(uint16_t i=0; i<4096; ++i) {
+            uint64_t occupancy_mask = 0;
+
+            for(int j=1; j<7; ++j) {
+                uint8_t x = p_y*8+j;
+                uint8_t y = j*8+p_x;
+
+                uint64_t value1 = (i >> (j-1)) & 1;
+                uint64_t value2 = (i >> (j+5)) & 1;
+
+                occupancy_mask |= value1 << x;
+                occupancy_mask |= value2 << y;
+            }
+
+            occupancy_mask &= ~(uint64_t(1) << square);
+
+
+            uint16_t hash = (occupancy_mask*rook_magic[square]) >> 52;
+            uint64_t answer = getRookMovesSlow(occupancy_mask, square%8, square/8);
+
+            rook_lookup[square][hash] = answer;
+        }
+    }
+
 
     //Calculate the possible sliding moves
     // The "column" is the column of the moving piece for which you want to calculate moves
@@ -113,7 +191,10 @@ bool MoveGenerator::isChecking(Board& board) {
     uint32_t king_position = __builtin_ffsll( board.pieces[KING] & blockers )-1; //get the other players king
 
     uint64_t diagonal_sliders = getSlidingAlongDiagonalA1H8(board, king_position, blockers) | getSlidingAlongDiagonalA8H1(board, king_position, blockers);
-    uint64_t vertical_sliders = getSlidingAlongFile(board, king_position, blockers) | getSlidingAlongRank(board, king_position, blockers);
+
+    uint64_t occupancy = (board.color[WHITE] | board.color[BLACK]) & rook_masks[king_position];
+    uint16_t hash = (occupancy*rook_magic[king_position]) >> 52;
+    uint64_t vertical_sliders = rook_lookup[king_position][hash] & ~blockers;
 
     uint64_t bitMoves = uint64_t(0);
     bitMoves |= KNIGHT_MOVES[king_position] & ~blockers & board.pieces[KNIGHT];
@@ -317,9 +398,9 @@ uint64_t MoveGenerator::getBishopMoves(const Board& board, const uint8_t &bishop
 }
 
 uint64_t MoveGenerator::getRookMoves(const Board& board, const uint8_t &rook_position) {
-    uint64_t bitMoves = getSlidingAlongRank( board, rook_position, board.color[board.side] );
-    bitMoves |= getSlidingAlongFile( board, rook_position, board.color[board.side] );
-    return bitMoves;
+    uint64_t occupancy = (board.color[WHITE] | board.color[BLACK]) & rook_masks[rook_position];
+    uint16_t hash = (occupancy*rook_magic[rook_position]) >> 52;
+    return rook_lookup[rook_position][hash] & ~(board.color[board.side]);
 }
 
 uint64_t MoveGenerator::getQueenMoves(const Board& board, const uint8_t &queen_position) {
@@ -335,39 +416,6 @@ uint64_t MoveGenerator::getQueenMoves(const Board& board, const uint8_t &queen_p
 uint64_t MoveGenerator::getSlidingMovesFromOccupancy(const Board& board, const uint8_t& column, const uint8_t& occupancy) {
     uint64_t retValue = SLIDING_MOVES[column][occupancy];
     return retValue;
-}
-
-uint64_t MoveGenerator::getSlidingAlongRank(const Board& board, const uint8_t& piece_position, const uint64_t& blockers) {
-    //convert a rank to a 8 bit number representing where the pieces on the rank are at
-    uint8_t column = piece_position%8;
-    uint8_t row = (piece_position-column)/8;
-
-    uint8_t occupancy = ( (board.color[WHITE] | board.color[BLACK])  >> (row*8)) & 255;
-
-    return (getSlidingMovesFromOccupancy(board, column, occupancy) << (row*8)) & ~blockers;
-}
-
-uint64_t MoveGenerator::getSlidingAlongFile(const Board& board, const uint8_t& piece_position, const uint64_t& blockers) {
-
-    uint8_t column = piece_position%8;
-    uint8_t row = (piece_position-column)/8;
-
-    //convert a rank to a 8 bit number representing where the pieces on the column are at
-    uint64_t ALL_PIECES = (board.color[WHITE] | board.color[BLACK]) >> column;
-    uint8_t occupancy = 0;
-    for(int i=0; i<8; ++i) {
-        occupancy |= ( (ALL_PIECES >> i*8) << i) & (1<<i);
-    }
-
-    //convert back into a column
-    uint64_t sliding_moves = getSlidingMovesFromOccupancy(board, row, occupancy);
-    uint64_t bitMoves = 0;
-    for(int i=0; i<8; ++i) {
-        bitMoves |= ((sliding_moves & (1<<i)) >> i) << (i*8);
-    }
-
-    //return to be about the column and return
-    return (bitMoves << column) & ~blockers;
 }
 
 uint64_t MoveGenerator::getSlidingAlongDiagonalA1H8(const Board& board, const uint8_t& piece_position, const uint64_t& blockers) {
@@ -457,8 +505,7 @@ uint64_t MoveGenerator::getWhiteAttacking(const Board& board) {
             bitMoves |= KNIGHT_MOVES[x] & ~blockers;
         }
         else if( board.pieces[ ROOK ] & shifted & board.color[WHITE] ) {
-            bitMoves |= getSlidingAlongRank( board, x, blockers );
-            bitMoves |= getSlidingAlongFile( board, x, blockers );
+            bitMoves |= getRookMoves(board, x);
         }
         else if( board.pieces[ BISHOP ] & shifted & board.color[WHITE] ) {
             bitMoves |= getSlidingAlongDiagonalA1H8( board, x, blockers );
@@ -467,8 +514,7 @@ uint64_t MoveGenerator::getWhiteAttacking(const Board& board) {
         else if( board.pieces[ QUEEN ] & shifted & board.color[WHITE] ) {
             bitMoves |= getSlidingAlongDiagonalA1H8( board, x, blockers );
             bitMoves |= getSlidingAlongDiagonalA8H1( board, x, blockers );
-            bitMoves |= getSlidingAlongRank( board, x, blockers );
-            bitMoves |= getSlidingAlongFile( board, x, blockers );
+            bitMoves |= getRookMoves(board, x);
         }
     }
     return bitMoves;
@@ -490,8 +536,7 @@ uint64_t MoveGenerator::getBlackAttacking(const Board& board) {
             bitMoves |= KNIGHT_MOVES[x] & ~blockers;
         }
         else if( board.pieces[ ROOK ] & shifted & board.color[BLACK] ) {
-            bitMoves |= getSlidingAlongRank( board, x, blockers );
-            bitMoves |= getSlidingAlongFile( board, x, blockers );
+            bitMoves |= getRookMoves(board, x);
         }
         else if( board.pieces[ BISHOP ] & shifted & board.color[BLACK] ) {
             bitMoves |= getSlidingAlongDiagonalA1H8( board, x, blockers );
@@ -500,8 +545,7 @@ uint64_t MoveGenerator::getBlackAttacking(const Board& board) {
         else if( board.pieces[ QUEEN ] & shifted & board.color[BLACK] ) {
             bitMoves |= getSlidingAlongDiagonalA1H8( board, x, blockers );
             bitMoves |= getSlidingAlongDiagonalA8H1( board, x, blockers );
-            bitMoves |= getSlidingAlongRank( board, x, blockers );
-            bitMoves |= getSlidingAlongFile( board, x, blockers );
+            bitMoves |= getRookMoves(board, x);
         }
     }
     return bitMoves;
