@@ -31,7 +31,9 @@ class MoveGenerator {
 
         uint64_t getKnightMoves(const Board& board, const uint8_t& knight_position);
         uint64_t getBishopMoves(const Board& board, const uint8_t& bishop_position);
+        uint64_t getBishopMovesUnfiltered(const uint64_t &occupancy, const uint8_t& bishop_position);
         uint64_t getRookMoves(const Board& board, const uint8_t& rook_position);
+        uint64_t getRookMovesUnfiltered(const uint64_t &occupnacy, const uint8_t& rook_position);
         uint64_t getQueenMoves(const Board& board, const uint8_t& queen_position);
         uint64_t getKingMoves(const Board& board, const uint8_t& king_position);
         uint64_t getKingCastles(const Board& board, const uint8_t& king_position);

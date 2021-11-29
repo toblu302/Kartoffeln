@@ -1,5 +1,4 @@
 #include "MoveGenerator.h"
-#include <iostream>
 
 uint64_t MoveGenerator::getRookMovesSlow(const uint64_t& occupancy, const uint8_t& p_x, const uint8_t& p_y) {
     uint64_t answer = 0;
@@ -447,15 +446,23 @@ uint64_t MoveGenerator::getKingCastles(const Board& board, const uint8_t &king_p
 }
 
 uint64_t MoveGenerator::getBishopMoves(const Board& board, const uint8_t &bishop_position) {
-    uint64_t occupancy = (board.color[WHITE] | board.color[BLACK]) & bishop_masks[bishop_position];
-    uint16_t hash = (occupancy*bishop_magic[bishop_position]) >> 55;
-    return bishop_lookup[bishop_position][hash] & ~(board.color[board.side]);
+    return getBishopMovesUnfiltered(board.color[WHITE] | board.color[BLACK], bishop_position) & ~(board.color[board.side]);
+}
+
+uint64_t MoveGenerator::getBishopMovesUnfiltered(const uint64_t &occupancy, const uint8_t &bishop_position) {
+    uint64_t filtered = occupancy & bishop_masks[bishop_position];
+    uint16_t hash = (filtered*bishop_magic[bishop_position]) >> 55;
+    return bishop_lookup[bishop_position][hash];
 }
 
 uint64_t MoveGenerator::getRookMoves(const Board& board, const uint8_t &rook_position) {
-    uint64_t occupancy = (board.color[WHITE] | board.color[BLACK]) & rook_masks[rook_position];
-    uint16_t hash = (occupancy*rook_magic[rook_position]) >> 52;
-    return rook_lookup[rook_position][hash] & ~(board.color[board.side]);
+    return getRookMovesUnfiltered(board.color[WHITE] | board.color[BLACK], rook_position) & ~(board.color[board.side]);
+}
+
+uint64_t MoveGenerator::getRookMovesUnfiltered(const uint64_t &occupancy, const uint8_t &rook_position) {
+    uint64_t filteded = occupancy & rook_masks[rook_position];
+    uint16_t hash = (filteded*rook_magic[rook_position]) >> 52;
+    return rook_lookup[rook_position][hash];
 }
 
 uint64_t MoveGenerator::getQueenMoves(const Board& board, const uint8_t &queen_position) {
@@ -483,14 +490,14 @@ uint64_t MoveGenerator::getWhiteAttacking(const Board& board) {
             bitMoves |= KNIGHT_MOVES[x] & ~blockers;
         }
         else if( board.pieces[ ROOK ] & shifted & board.color[WHITE] ) {
-            bitMoves |= getRookMoves(board, x);
+            bitMoves |= getRookMovesUnfiltered(board.color[WHITE] | board.color[BLACK], x) & ~blockers;
         }
         else if( board.pieces[ BISHOP ] & shifted & board.color[WHITE] ) {
-            bitMoves |= getBishopMoves(board, x);
+            bitMoves |= getBishopMovesUnfiltered(board.color[WHITE] | board.color[BLACK], x) & ~blockers;
         }
         else if( board.pieces[ QUEEN ] & shifted & board.color[WHITE] ) {
-            bitMoves |= getBishopMoves(board, x);
-            bitMoves |= getRookMoves(board, x);
+            bitMoves |= getBishopMovesUnfiltered(board.color[WHITE] | board.color[BLACK], x) & ~blockers;
+            bitMoves |= getRookMovesUnfiltered(board.color[WHITE] | board.color[BLACK], x) & ~blockers;
         }
     }
     return bitMoves;
@@ -512,14 +519,14 @@ uint64_t MoveGenerator::getBlackAttacking(const Board& board) {
             bitMoves |= KNIGHT_MOVES[x] & ~blockers;
         }
         else if( board.pieces[ ROOK ] & shifted & board.color[BLACK] ) {
-            bitMoves |= getRookMoves(board, x);
+            bitMoves |= getRookMovesUnfiltered(board.color[WHITE] | board.color[BLACK], x) & ~blockers;
         }
         else if( board.pieces[ BISHOP ] & shifted & board.color[BLACK] ) {
-            bitMoves |= getBishopMoves(board, x);
+            bitMoves |= getBishopMovesUnfiltered(board.color[WHITE] | board.color[BLACK], x) & ~blockers;
         }
         else if( board.pieces[ QUEEN ] & shifted & board.color[BLACK] ) {
-            bitMoves |= getBishopMoves(board, x);
-            bitMoves |= getRookMoves(board, x);
+            bitMoves |= getBishopMovesUnfiltered(board.color[WHITE] | board.color[BLACK], x) & ~blockers;
+            bitMoves |= getRookMovesUnfiltered(board.color[WHITE] | board.color[BLACK], x) & ~blockers;
         }
     }
     return bitMoves;
